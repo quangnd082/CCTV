@@ -1,0 +1,25 @@
+{
+    "no_of_camera": 2,
+    "max_column": 1,
+    "log_infos": [
+        {
+            "camera_name": "Last Detection Warning",
+            "camera_src": "D:\\PC\\2024\\EHSCCTVMonitoring\\video\\SEVT_EHS1_KhoHoaChatChip_13.35_2024-06-07KichBanOK1.2_Trim.mp4",
+            "img_size": 640,
+            "colors": [[0,0,255],[0,255,0],[255,0,255],[0,0,0],[0,0,0],
+                      [255,0,0],[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+            "timer_delay": 100,
+            "directory": "./image_encode/"
+        },
+        {
+            "camera_name": "List",
+            "camera_src": "D:\\PC\\2024\\EHSCCTVMonitoring\\video\\SEVT_EHS1_KhoHoaChatChip_13.35_2024-06-07KichBanOK1.2_Trim.mp4",
+            "img_size": 640,
+            "colors": [[0,0,255],[0,255,0],[255,0,255],[0,0,0],[0,0,0],
+                      [255,0,0],[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+            "timer_delay": 100,
+            "directory": "./image_encode/"
+        }
+    ]
+}
+

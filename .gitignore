@@ -1,0 +1,32 @@
+# Bỏ qua thư mục ảo của Python
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.pt
+*.onnx
+*.xml
+*.jpg
+ImageCapture/
+Videos/
+
+
+# Bỏ qua file môi trường
+.env
+
+# Bỏ qua file log, cache
+*.log
+*.sqlite3
+Preprocessing/
+Log_Vision/
+OCDURack/
+ImageRaw/
+res/Database/Images/
+
+runs/
+TestModel/
+res/Model_AI/
+

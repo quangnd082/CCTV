@@ -10,6 +10,7 @@ __pycache__/
 *.onnx
 *.xml
 *.jpg
+LastDetectionWarning
 ImageCapture/
 Videos/
 

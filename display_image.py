@@ -21,6 +21,7 @@ from queue import Queue
 
 import os
 from pathlib import Path
+from list_widget import ImageListWidget
 
 
 class LogWidget(QWidget):
@@ -41,17 +42,14 @@ class LogWidget(QWidget):
         self.max_items = max_items
         self.list_image = list_image
 
-        # self.timer_watch = QTimer(self)
-        # self.timer_watch.timeout.connect(self.update_date_time)
-        # self.timer_watch.start(1000)  # Cập nhật mỗi 10ms
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.decode_frame)
-        self.timer.start(10000)  # Cập nhật mỗi 1s
+        self.timer.start(5000)  # Cập nhật mỗi 1s
 
         self.timer_last = QTimer(self)
         self.timer_last.timeout.connect(self.delete_file_encode)
-        self.timer_last.start(10000)  # Cập nhật mỗi 1s
+        self.timer_last.start(10000)  # Cập nhật mỗi 10s
 
     def initUI(self, camera_name="None"):
 
@@ -68,10 +66,8 @@ class LogWidget(QWidget):
         self.layout.addWidget(self.image_label, 0, 0, 3, 3)  # Đặt label vào ô (0, 1)
 
 
-        # Vẽ hình chữ nhật
-        # painter.drawRect(self.image_label.rect())
         self.image_label.update()
-        # self.layout.addWidget(self.image_label,0,0,2,2)
+
 
         # Label hiển thị tên
         self.camera_name_label = QLabel(self)
@@ -92,18 +88,17 @@ class LogWidget(QWidget):
         # if not os.path.exists(self.image_folder_path):
         #     os.makedirs(self.image_folder_path)
         self.frame_count = 0
-        self.frame_camera = None
-        self.is_running = False
+
 
     def delete_file_encode(self):
-        image_path_decode = "./image_decode/"
+        image_path_decode = "./LastDetectionWarning/"
         files = os.listdir(self.directory)
         files = [f for f in files if os.path.isfile(os.path.join(self.directory, f))]
-        if len(files) > 50:
+        if len(files) > 38:
             files.sort(key=lambda x: os.path.getmtime(os.path.join(self.directory, x)), reverse=True)
             for file_name in files[19:]:
-                image_path_decode = "./image_encode/" + file_name
-                print(image_path_decode)
+                image_path_decode = "./LastDetectionWarning/" + file_name
+                # print(image_path_decode)
                 os.remove(image_path_decode)
 
     def decode_frame(self):
@@ -111,20 +106,15 @@ class LogWidget(QWidget):
         file_name = self.last_detector_warning()
         if file_name == None:
             return
-        with open(file_name, 'r') as text_file:
-            encoded_string = text_file.read()
-        # print(encoded_string)
-        image_data = base64.b64decode(encoded_string)
 
         # Chuyển đổi bytes thành QImage
-        image = QImage()
-        image.loadFromData(image_data)
-
+        image = QImage(file_name)
+        if image.isNull():
+            return
         pixmap = QPixmap.fromImage(image)
         resized_pixmap = pixmap.scaled(400, 300)
 
         resized_pixmap.size()
-        # self.image_label.resize(640, 320)
         self.image_label.setPixmap(resized_pixmap)
 
 
@@ -144,3 +134,4 @@ class LogWidget(QWidget):
     def closeEvent(self, event):
         self.capture.release()
         super().closeEvent(event)
+

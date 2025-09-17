@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
         # camera_src = self.config_info_log.log_infos[i].camera_src
         img_size = self.config_info_log.log_infos[0].img_size
         colors = tuple(map(tuple, self.config_info_log.log_infos[0].colors))
-        directory = self.config_info_log.log_infos[1].directory
+        directory = self.config_info_log.log_infos[0].directory
 
         self.display_image = LogWidget(camera_name=camera_name_image, img_size=img_size / 2,
                                        colors=colors, directory=directory)
@@ -80,10 +80,10 @@ class MainWindow(QMainWindow):
         self.display_image.setMaximumHeight(400)
         self.layout_log.addWidget(self.display_image, 0, 0, 1, 1)
 
-        camera_name_list = self.config_info_log.log_infos[1].camera_name
-        colors = tuple(map(tuple, self.config_info_log.log_infos[1].colors))
-        timer_delay = self.config_info_log.log_infos[1].timer_delay
-        directory = self.config_info_log.log_infos[1].directory
+        camera_name_list = self.config_info_log.log_infos[0].camera_name
+        colors = tuple(map(tuple, self.config_info_log.log_infos[0].colors))
+        timer_delay = self.config_info_log.log_infos[0].timer_delay
+        directory = self.config_info_log.log_infos[0].directory
 
         self.widget_list = ImageListWidget(camera_name=camera_name_list,
                                            timer_delay=timer_delay, colors=colors, directory=directory)

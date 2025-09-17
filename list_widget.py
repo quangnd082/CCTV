@@ -1,3 +1,5 @@
+
+
 import threading
 import time
 from PIL import Image
@@ -45,7 +47,7 @@ class ImageListWidget(QListWidget):
 
         self.timer_popularlist = QTimer(self)
         self.timer_popularlist.timeout.connect(self.populate_list)
-        self.timer_popularlist.start(1000)
+        self.timer_popularlist.start(5000)
 
         self.label = QLabel(self)
 
@@ -57,13 +59,43 @@ class ImageListWidget(QListWidget):
                 self.list_image.append(filename)
                 name = os.path.splitext(os.path.basename(filename))[0]
                 item = QListWidgetItem(name)
-                if self.count() >= 20:
+                if self.count() >= 30:
                     # Xóa item đầu tiên (cũ nhất) nếu đã đạt giới hạn
                     self.takeItem(0)
                     # print(f"delete item{self.takeItem(0).text()}")
                 self.addItem(item)
 
+    def decode_frame(self,file_path):
 
+        try:
+            ext = os.path.splitext(file_path)[1].lower()
+
+            if ext == '.txt':
+                with open(file_path, 'r') as text_file:
+                    encoded_string = text_file.read()
+                image_data = base64.b64decode(encoded_string)
+                pixmap = QPixmap()
+                if not pixmap.loadFromData(image_data):
+                    raise ValueError("Cannot load image from base64 data")
+            else:
+                if not os.path.exists(file_path):
+                    raise FileNotFoundError(file_path)
+                pixmap = QPixmap(file_path)
+                if pixmap.isNull():
+                    raise ValueError("Cannot load image file")
+
+            dlg = QDialog(self)
+            dlg.setWindowTitle(os.path.basename(file_path))
+            layout = QVBoxLayout(dlg)
+            lbl = QLabel(dlg)
+            lbl.setAlignment(Qt.AlignCenter)
+            lbl.setPixmap(pixmap.scaled(900, 700, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            layout.addWidget(lbl)
+            dlg.resize(920, 720)
+            dlg.exec_()
+
+        except Exception as e:
+            print(f"decode_frame error: {e}")
 
 
     def initUI(self, camera_name="None"):
@@ -95,19 +127,13 @@ class ImageListWidget(QListWidget):
 
     def on_item_clicked(self,item):
         # Lấy đường dẫn file từ item đã click
-        file_path = "./image_encode/" + item.text()+".jpg"
-        #print(item.text())
-        self.open_image(file_path)
+        name = item.text()
+        for ext in ('.jpg', '.jpeg', '.png', '.txt'):
+            file_path = os.path.join(self.directory, name + ext)
+            if os.path.exists(file_path):
+                self.decode_frame(file_path)
+                return
+        print(f"No file found for {name} in {self.directory}")
 
-    def open_image(self,file_path):
-        # image_path_decode = "./image_decode/" + self.image_folder_path + datetime.now().strftime(
-        #     "%Y%m%d%H%M%S") + "_warning.jpg"
-        try:
-            with open(file_path, 'r') as text_file:
-                image_data = text_file.read()
-                # print(encoded_string)
-            image = Image.open(BytesIO(image_data))
-            image.show()
-        except Exception as e:
-            print(f"{e}")
+
 

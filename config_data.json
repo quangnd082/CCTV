@@ -1,5 +1,5 @@
 {
-    "no_of_camera": 4,
+    "no_of_camera": 2,
     "max_column": 2,
     "camera_infos": [
           {
@@ -32,7 +32,7 @@
           },
         {
               "roi_check": [-1,9999,-1,9999],
-              "camera_name": "CCTV 01",
+              "camera_name": "CCTV 02",
               "camera_src": "D:\\2025\\CCTV\\Videos\\38590-418590043_medium.mp4",
               "img_size": 640,
               "yolo_model_path": "Models/yolov8n.pt",
@@ -60,7 +60,7 @@
           },
         {
               "roi_check": [-1,9999,-1,9999],
-              "camera_name": "CCTV 01",
+              "camera_name": "CCTV 03",
               "camera_src": "D:\\2025\\CCTV\\Videos\\38590-418590043_medium.mp4",
               "img_size": 640,
               "yolo_model_path": "Models/yolov8n.pt",
@@ -87,22 +87,22 @@
               "timer_delay": 100
           },{
               "roi_check": [-1,9999,-1,9999],
-              "camera_name": "CCTV 02",
+              "camera_name": "CCTV 04",
               "camera_src": "D:\\2025\\CCTV\\Videos\\38590-418590043_medium.mp4",
               "img_size": 640,
               "yolo_model_path": "Models/yolov8n.pt",
               "yolo_rate": 0.5,
               "classes": [
-                  "",
-                  "Helmet",
-                  "Jacket",
-                  "_3",
-                  "_4",
-                  "Fall",
-                  "No Helmet",
-                  "No Jacket",
-                  "Fire",
-                  "Smoke"
+                  "person",
+                  "bicycle",
+                  "car",
+                  "motorcycle",
+                  "airplane",
+                  "bus",
+                  "train",
+                  "truck",
+                  "boat",
+                  "trafficlight"
               ],
               "colors": [[0,0,255],[0,255,0],[255,0,255],[0,0,0],[0,0,0],
                         [255,0,0],[255,0,0],[255,0,0],[255,0,0],[255,0,0]],

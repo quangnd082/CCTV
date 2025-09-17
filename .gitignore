@@ -13,7 +13,7 @@ __pycache__/
 LastDetectionWarning
 ImageCapture/
 Videos/
-
+Models
 
 # Bỏ qua file môi trường
 .env

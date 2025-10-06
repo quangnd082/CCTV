@@ -1,7 +1,5 @@
 ### Giải thích ngắn gọn các thay đổi đề xuất
-
-
-""" 
+"""
 - **Giảm độ trễ đọc frame (capture latency)**
   - Đổi `self.q = queue.Queue()` thành `Queue(maxsize=1)` và xóa frame cũ trước khi put: luôn giữ “frame mới nhất”, tránh backlog → hình hiển thị mượt hơn.
   - Đặt thread đọc camera là `daemon=True` và join nhẹ khi `release()`: thoát app sạch sẽ, không treo vì thread nền.
@@ -34,10 +32,9 @@
   - Inference nhanh/nhẹ hơn khi có GPU.
   - Vòng lặp detect ổn định vì không bị chặn bởi việc ghi file.
 
-- **Bạn có thể tinh chỉnh**
   - Mục tiêu FPS bao nhiêu và máy bạn có GPU nào? Mình sẽ set `img_size`, tỉ lệ downscale và nhịp skip frame phù hợp.
 
-- Đã tối ưu capture (queue 1 phần tử + daemon thread), inference (GPU/half + tham số tái sử dụng), và I/O (encode ảnh nền + throttle). 
+- Đã tối ưu capture (queue 1 phần tử + daemon thread), inference (GPU/half + tham số tái sử dụng), và I/O (encode ảnh nền + throttle).
 - Kết quả: giảm latency, giảm giật khung và ổn định UI khi cảnh báo liên tục.
 """
 import queue
@@ -63,16 +60,21 @@ from queue import Queue
 import gc
 from display_image import *
 
-import os,re
+import os, re
 from pathlib import Path
 
 INVALID_CHARS = r'[^A-Za-z0-9_.-]'
+
+
+
+
 def safe_name(s: str) -> str:
     """Biến chuỗi thành tên file an toàn cho Windows."""
-    s = os.path.basename(str(s))      # nếu là path, chỉ lấy tên cuối
-    s = s.replace(':', '_')           # bỏ dấu :
-    s = re.sub(INVALID_CHARS, '_', s) # thay kí tự lạ
+    s = os.path.basename(str(s))  # nếu là path, chỉ lấy tên cuối
+    s = s.replace(':', '_')  # bỏ dấu :
+    s = re.sub(INVALID_CHARS, '_', s)  # thay kí tự lạ
     return s[:80]
+
 
 class VideoCapture:
 
@@ -119,6 +121,8 @@ class VideoCapture:
                     self._t.join(timeout=0.2)
                 except Exception:
                     pass
+
+
 class CameraThread(QThread):
     frame_captured = pyqtSignal(QImage)
     warning_changed = pyqtSignal(bool)
@@ -139,9 +143,8 @@ class CameraThread(QThread):
 
         self.camera_name = camera_name or str(self.camera_id)
         self.camera_slug = safe_name(unidecode(self.camera_name))
-        self.save_dir = Path("./image")
+        self.save_dir = Path("./LastDetectionWarning")
         self.save_dir.mkdir(parents=True, exist_ok=True)
-
 
         # Inference config
         self.device = 0 if torch.cuda.is_available() else 'cpu'
@@ -166,7 +169,7 @@ class CameraThread(QThread):
                 continue
             results = self.model.predict(frame, **self.predict_params)
             cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            annotator = Annotator(cv2image, line_width=1, font_size=16)
+            annotator = Annotator(cv2image, line_width=2, font_size=16)
             is_warning = False
             r = results[0]
             boxes = r.boxes
@@ -184,17 +187,35 @@ class CameraThread(QThread):
                 if bx1 < x1 or by1 < y1 or bx2 > x2 or by2 > y2:
                     continue
                 ci = int(box.cls)
-                helmet_ok = (ci == 55 and self.enable_flags.get('helmet', False))
-                fell_ok = (ci == 57 and self.enable_flags.get('fell', False))
-                jacket_ok = (ci == 74 and self.enable_flags.get('jacket', False))
-                fire_ok = (ci == 84 and self.enable_flags.get('fire', False))
-                smoke_ok = (ci == 93 and self.enable_flags.get('smoke', False))
+                helmet_ok = (ci == 5 and self.enable_flags.get('helmet', False))
+                fell_ok = (ci == 6 and self.enable_flags.get('fell', False))
+                jacket_ok = (ci == 7 and self.enable_flags.get('jacket', False))
+
 
                 # an toàn label & màu
-                label = str(self.classes[ci]) if 0 <= ci < len(self.classes) and self.classes[ci] else str(ci)
+                # ưu tiên tên trong config; nếu trống hoặc thiếu thì fallback sang model.names
+                try:
+                    name_from_cfg = self.classes[ci] if 0 <= ci < len(self.classes) else None
+                except Exception:
+                    name_from_cfg = None
+                name_from_model = None
+                try:
+                    if hasattr(self.model, 'names') and self.model.names is not None:
+                        if isinstance(self.model.names, dict):
+                            name_from_model = self.model.names.get(ci)
+                        elif 0 <= ci < len(self.model.names):
+                            name_from_model = self.model.names[ci]
+                except Exception:
+                    pass
+                obj_name = name_from_cfg if (isinstance(name_from_cfg, str) and len(name_from_cfg) > 0) else (name_from_model if name_from_model else str(ci))
+                try:
+                    conf_val = float(box.conf)
+                except Exception:
+                    conf_val = 0.0
+                label = f"{obj_name} {conf_val:.2f}"
                 color_warn = tuple(self.colors[ci]) if 0 <= ci < len(self.colors) else (255, 0, 0)
 
-                if helmet_ok or fell_ok or jacket_ok or fire_ok or smoke_ok or ci == 2:
+                if helmet_ok or fell_ok or jacket_ok :
                     is_warning = True
                     annotator.box_label([bx1, by1, bx2, by2], label, color=color_warn)
                 else:
@@ -206,6 +227,7 @@ class CameraThread(QThread):
                 img = annotator.result()
                 now_ts = time.time()
                 if now_ts - self._last_warn_ts > 10.0:
+                    print(f"Time save Image = {now_ts - self._last_warn_ts}")
                     try:
                         ts = datetime.now().strftime("%Y%m%d%H%M%S")
                         file_path = self.save_dir / f"{self.camera_slug}_{ts}_warning.jpg"
@@ -231,10 +253,12 @@ class CameraThread(QThread):
             cv2.imwrite(file_path, img_bgr)
         except Exception as e:
             print("save image error:", e)
+
     def stop(self):
         self.running = False
         self.video_capture.release()
         self.wait()
+
 
 class CameraWidget(QWidget):
     def __init__(self, camera_name="None", camera_src=0, img_size=640, yolo_model_path="", yolo_rate=0.5,
@@ -301,10 +325,12 @@ class CameraWidget(QWidget):
         self.camera_thread.warning_changed.connect(self._on_warning_changed)
         self.camera_thread.start()
 
-        # Watch timer for clock + blink
-        self.timer_watch = QTimer(self)
-        self.timer_watch.timeout.connect(self.update_date_time)
-        self.timer_watch.start(1000)
+        # UI warning display throttle: show at most once every 10 minutes
+        self._last_ui_warn_ts = 0.0
+        self._warn_show_ms = 2000  # show label for 2 seconds when allowed
+        self._warn_cooldown_sec = 600.0  # 10 minutes cooldown between shows
+
+
 
     def initUI(self, camera_name="None"):
 
@@ -319,7 +345,6 @@ class CameraWidget(QWidget):
 
         self.layout.addWidget(self.image_label, 0, 0, 3, 3)  # Đặt label vào ô (0, 1)
 
-        # cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
 
         # Label hiển thị tên camera
         self.camera_name_label = QLabel(self)
@@ -364,7 +389,6 @@ class CameraWidget(QWidget):
         self.checkbox_smoke.setChecked(self.is_smoke_check)
         self.checkbox_smoke.stateChanged.connect(self.onSmokeStateChange)
 
-
         # self.checkbox_layout.addWidget(self.checkbox_fire)
         # self.checkbox_layout.addWidget(self.checkbox_smoke)
         self.checkbox_layout.addWidget(self.checkbox_fell)
@@ -387,13 +411,12 @@ class CameraWidget(QWidget):
         self.label_warning.setVisible(False)
         self.label_warning.setContentsMargins(0, 0, 0, 0)
         self.label_warning.setStyleSheet(
-            "font-size: 65px; font-weight: bold; color : red;")
-        self.layout.addWidget(self.label_warning, 1, 1,Qt.AlignCenter)
+            "font-size: 40px; font-weight: bold; color : red;")
+        self.layout.addWidget(self.label_warning, 1, 1,1,1, Qt.AlignCenter)
 
         # Set chiều rộng, cao cho các grid
         self.layout.setRowMinimumHeight(2, 50)
         self.layout.setRowMinimumHeight(0, 50)
-   
 
         self.layout.addLayout(self.checkbox_layout, 0, 2)  # Đặt checkbox vào ô (0, 0)
         # Đặt layout chính cho widget
@@ -404,13 +427,30 @@ class CameraWidget(QWidget):
 
     def _on_frame(self, q_image: QImage):
         # giữ aspect & smoothing, nhưng chỉ nên dùng nếu cần chất lượng cao
-        pm = QPixmap.fromImage(q_image)
-        pm = pm.scaled(self.image_label.size(), Qt.KeepAspectRatio, Qt.FastTransformation)
-        self.image_label.setPixmap(pm)
+        # pm = QPixmap.fromImage(q_image)
+        # pm = pm.scaled(self.image_label.size(), Qt.KeepAspectRatio, Qt.FastTransformation)
+        # self.image_label.setPixmap(pm)
+        self.image_label.setPixmap(QPixmap.fromImage(q_image).scaled(self.image_label.size()))
 
     def _on_warning_changed(self, flag: bool):
         self.is_warning = flag
+        if not self.is_warning:
+            self.label_warning.setVisible(False)
+            return
+        now_ts = time.time()
+        if (now_ts - getattr(self, '_last_ui_warn_ts', 0.0)) >= getattr(self, '_warn_cooldown_sec', 600.0):
+            self.label_warning.setVisible(True)
+            self._last_ui_warn_ts = now_ts
+            try:
+                QTimer.singleShot(int(getattr(self, '_warn_show_ms', 2000)), self._hide_warning_label)
+            except Exception:
+                pass
 
+    def _hide_warning_label(self):
+        try:
+            self.label_warning.setVisible(False)
+        except Exception:
+            pass
 
     def onHelmetStateChange(self, state):
         if state == 2:  # Qt.Checked = 2
@@ -419,6 +459,7 @@ class CameraWidget(QWidget):
             self.is_helmet_check = False
         if hasattr(self, 'enable_flags'):
             self.enable_flags['helmet'] = self.is_helmet_check
+
     def onFellStateChange(self, state):
         if state == 2:  # Qt.Checked = 2
             self.is_fell_check = True
@@ -426,6 +467,7 @@ class CameraWidget(QWidget):
             self.is_fell_check = False
         if hasattr(self, 'enable_flags'):
             self.enable_flags['fell'] = self.is_fell_check
+
     def onJacketStateChange(self, state):
         if state == 2:  # Qt.Checked = 2
             self.is_jacket_check = True
@@ -433,6 +475,7 @@ class CameraWidget(QWidget):
             self.is_jacket_check = False
         if hasattr(self, 'enable_flags'):
             self.enable_flags['jacket'] = self.is_jacket_check
+
     def onFireStateChange(self, state):
         if state == 2:  # Qt.Checked = 2
             self.is_fire_check = True
@@ -440,6 +483,7 @@ class CameraWidget(QWidget):
             self.is_fire_check = False
         if hasattr(self, 'enable_flags'):
             self.enable_flags['fire'] = self.is_fire_check
+
     def onSmokeStateChange(self, state):
         if state == 2:  # Qt.Checked = 2
             self.is_smoke_check = True
@@ -447,13 +491,10 @@ class CameraWidget(QWidget):
             self.is_smoke_check = False
         if hasattr(self, 'enable_flags'):
             self.enable_flags['smoke'] = self.is_smoke_check
+
     def update_date_time(self):
         self.label_date_time.setText(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-        if self.is_warning:
-            self.label_warning.setVisible(not self.label_warning.isVisible())
-        else:
-            self.label_warning.setVisible(False)
+        # Do not blink the warning label here; visibility is controlled by _on_warning_changed cooldown
 
     def closeEvent(self, event):
         try:
@@ -470,4 +511,3 @@ class CameraWidget(QWidget):
 
 
 
-    

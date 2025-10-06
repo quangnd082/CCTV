@@ -5,7 +5,7 @@
           {
               "roi_check": [-1,9999,-1,9999],
               "camera_name": "CCTV 01",
-              "camera_src": "D:\\2025\\CCTV\\Videos\\xebus.mp4",
+              "camera_src": "D:\\2025\\CCTV\\Videos\\38590-418590043_medium.mp4",
               "img_size": 640,
               "yolo_model_path": "yolo11n.pt",
               "yolo_rate": 0.5,
@@ -33,7 +33,7 @@
         {
               "roi_check": [-1,9999,-1,9999],
               "camera_name": "CCTV 02",
-              "camera_src": "D:\\2025\\CCTV\\Videos\\football.mp4",
+              "camera_src": "D:\\2025\\CCTV\\Videos\\38590-418590043_medium.mp4",
               "img_size": 640,
               "yolo_model_path": "yolo11n.pt",
               "yolo_rate": 0.5,
@@ -61,7 +61,7 @@
         {
               "roi_check": [-1,9999,-1,9999],
               "camera_name": "CCTV 03",
-              "camera_src": "D:\\2025\\CCTV\\Videos\\football.mp4",
+              "camera_src": "D:\\2025\\CCTV\\Videos\\38590-418590043_medium.mp4",
               "img_size": 640,
               "yolo_model_path": "yolo11n.pt",
               "yolo_rate": 0.5,

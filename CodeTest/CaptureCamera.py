@@ -34,7 +34,7 @@ class VideoCapture:
 
 
 
-url = "../Videos/38590-418590043_medium.mp4"
+url = "../Videos/xebus.mp4"
 video_capture = VideoCapture(url)
 
 while True:

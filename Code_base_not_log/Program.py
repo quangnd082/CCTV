@@ -10,7 +10,6 @@ from config_data import *
 from config_data_log import *
 
 from list_widget import ImageListWidget
-from Logging import Logger
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -26,9 +25,6 @@ class MainWindow(QMainWindow):
         self.layout_log = QGridLayout()
 
         self.layout = QGridLayout(self.central_widget)
-
-        # Logger dùng chung cho toàn app
-        self.logger = Logger('CCTV')
 
         self.create_camera_widgets()
         self.create_log_widgets()
@@ -65,7 +61,7 @@ class MainWindow(QMainWindow):
                                   yolo_model_path=yolo_model_path,
                                   yolo_rate=yolo_rate, is_fell_check=is_fell_check, is_heltmet_check=is_helmet_check,
                                   is_jacket_check=is_jacket_check,is_fire_check=is_fire_check,is_smoke_check=is_smoke_check,
-                                  timer_delay=timer_delay, classes=classes, colors=colors, roi_check=roi_check,logger=self.logger)
+                                  timer_delay=timer_delay, classes=classes, colors=colors, roi_check=roi_check)
             no_of_column = i % max_column
             no_of_row = i // max_column
             self.layout_cam.addWidget(widget, no_of_row, no_of_column)

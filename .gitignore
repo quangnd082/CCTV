@@ -11,23 +11,12 @@ __pycache__/
 *.xml
 *.jpg
 LastDetectionWarning
-ImageCapture/
 Videos/
-Models
+
 
 # Bỏ qua file môi trường
 .env
 
 # Bỏ qua file log, cache
 *.log
-*.sqlite3
-Preprocessing/
-Log_Vision/
-OCDURack/
-ImageRaw/
-res/Database/Images/
-
-runs/
-TestModel/
-res/Model_AI/
 

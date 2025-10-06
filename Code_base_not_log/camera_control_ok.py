@@ -1,3 +1,42 @@
+### Giải thích ngắn gọn các thay đổi đề xuất
+"""
+- **Giảm độ trễ đọc frame (capture latency)**
+  - Đổi `self.q = queue.Queue()` thành `Queue(maxsize=1)` và xóa frame cũ trước khi put: luôn giữ “frame mới nhất”, tránh backlog → hình hiển thị mượt hơn.
+  - Đặt thread đọc camera là `daemon=True` và join nhẹ khi `release()`: thoát app sạch sẽ, không treo vì thread nền.
+
+- **Tối ưu suy luận YOLO (inference)**
+  - Thêm `torch` và tự chọn `device`: dùng GPU nếu có (`cuda`) hoặc CPU nếu không.
+  - Bật `half` precision khi có CUDA: giảm băng thông/compute → inference nhanh hơn.
+  - Gom các tham số predict vào `self.predict_params` và tái sử dụng mỗi frame: giảm overhead khởi tạo và log `verbose`.
+  - Dùng `results[0]` (1 ảnh → 1 kết quả) thay vì lặp qua `results`: ít vòng lặp không cần thiết.
+
+- **Giảm nghẽn I/O khi lưu cảnh báo**
+  - Thay vì encode và ghi file ngay trong loop, chuyển sang một thread nền: `threading.Thread(..., daemon=True).start()` với `frame.copy()` để an toàn bộ nhớ.
+  - Thêm throttle 2 giây (`self._last_warn_ts`) cho việc lưu file warning: không spam I/O liên tục → vòng lặp detect mượt hơn.
+
+- **Giữ UI mượt**
+  - Vẫn chạy detect trong `QThread` và chỉ emit `QImage` về UI thread → không block UI.
+  - Không đổi logic ROI, màu, vẽ khung; chỉ tinh gọn đường đi dữ liệu và I/O.
+
+- **Tùy chọn tăng mượt thêm (bật khi cần)**
+  - Giảm `img_size` (ví dụ 512/416) khi tạo `CameraWidget`.
+  - Máy chỉ CPU: xử lý cách frame (skip mỗi 1 frame).
+  - Downscale khung 1080p trước khi detect (`cv2.resize` với `INTER_AREA`).
+
+- **Tương thích và an toàn**
+  - `half` chỉ bật khi `torch.cuda.is_available()` → không lỗi trên CPU.
+  - Dọn tài nguyên camera + thread gọn gàng trong `release()` và `stop()`.
+
+- **Tác động chính**
+  - Ít trễ hơn giữa camera → màn hình.
+  - Inference nhanh/nhẹ hơn khi có GPU.
+  - Vòng lặp detect ổn định vì không bị chặn bởi việc ghi file.
+
+  - Mục tiêu FPS bao nhiêu và máy bạn có GPU nào? Mình sẽ set `img_size`, tỉ lệ downscale và nhịp skip frame phù hợp.
+
+- Đã tối ưu capture (queue 1 phần tử + daemon thread), inference (GPU/half + tham số tái sử dụng), và I/O (encode ảnh nền + throttle).
+- Kết quả: giảm latency, giảm giật khung và ổn định UI khi cảnh báo liên tục.
+"""
 import queue
 import threading
 import time
@@ -23,7 +62,6 @@ from display_image import *
 
 import os, re
 from pathlib import Path
-from Logging import Logger
 
 INVALID_CHARS = r'[^A-Za-z0-9_.-]'
 
@@ -40,8 +78,7 @@ def safe_name(s: str) -> str:
 
 class VideoCapture:
 
-    def __init__(self, name, logger: Logger = None):
-        self.logger = logger
+    def __init__(self, name):
         self.source = name
         self.is_file = isinstance(name, str) and os.path.isfile(name)
         self.cap = cv2.VideoCapture(name)
@@ -59,10 +96,7 @@ class VideoCapture:
         while True:
             ret, frame = self.cap.read()
             if not ret:
-                if self.logger:
-                    self.logger.warning("FAIL READ FRAME")
-                else:
-                    print("FAIL READ FRAME")
+                print("FAIL READ FRAME")
                 time.sleep(0.1)
                 break
             if not self.q.empty():
@@ -94,7 +128,7 @@ class CameraThread(QThread):
     warning_changed = pyqtSignal(bool)
 
     def __init__(self, camera_id, model, yolo_rate, img_size, roi_check, classes, colors,
-                 enable_flags, camera_name=None, logger: Logger = None):
+                 enable_flags, camera_name=None):
         super().__init__()
         self.camera_id = camera_id
         self.model = model
@@ -105,8 +139,7 @@ class CameraThread(QThread):
         self.colors = colors
         self.enable_flags = enable_flags
         self.running = True
-        self.logger = logger
-        self.video_capture = VideoCapture(camera_id, logger=self.logger)
+        self.video_capture = VideoCapture(camera_id)
 
         self.camera_name = camera_name or str(self.camera_id)
         self.camera_slug = safe_name(unidecode(self.camera_name))
@@ -194,8 +227,8 @@ class CameraThread(QThread):
                 annotator.box_label([5, 5, w - 5, h - 5], "", color=(255, 0, 0))
                 img = annotator.result()
                 now_ts = time.time()
-                if now_ts - self._last_warn_ts > 5.0:
-                    
+                if now_ts - self._last_warn_ts > 600.0:
+                    print(f"Time save Image = {now_ts - self._last_warn_ts}")
                     try:
                         ts = datetime.now().strftime("%Y%m%d%H%M%S")
                         file_path = self.save_dir / f"{self.camera_slug}_{ts}_warning.jpg"
@@ -204,20 +237,12 @@ class CameraThread(QThread):
                             args=(str(file_path), img.copy()),
                             daemon=True
                         ).start()
-                        self._last_warn_ts = time.time()
+                        self._last_warn_ts = now_ts
                     except Exception as e:
-                        if self.logger:
-                            self.logger.error(f"save image start error: {e}")
-                        else:
-                            print(f"save image start error: {e}")
+                        print("save image start error:", e)
             # báo trạng thái warning ra UI nếu có thay đổi
             if is_warning != self._last_warning_state:
                 self._last_warning_state = is_warning
-                if is_warning:
-                    if self.logger:
-                        self.logger.warning(f"Violation detected")
-                    else:
-                        print(f"Violation detected")
                 self.warning_changed.emit(is_warning)
             q_image = QImage(img.data, w, h, w * 3, QImage.Format_RGB888).copy()
             self.frame_captured.emit(q_image)
@@ -228,10 +253,7 @@ class CameraThread(QThread):
             img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
             cv2.imwrite(file_path, img_bgr)
         except Exception as e:
-            if self.logger:
-                self.logger.error(f"save image error: {e}")
-            else:
-                print(f"save image error: {e}")
+            print("save image error:", e)
 
     def stop(self):
         self.running = False
@@ -244,7 +266,7 @@ class CameraWidget(QWidget):
                  classes=["", "Helmet", "Fall", "No Helmet"], roi_check=[],
                  colors=[(0, 0, 255), (0, 255, 0), (255, 0, 0), (255, 0, 0)], is_fell_check=True, is_fire_check=False,
                  is_smoke_check=False,
-                 is_heltmet_check=False, is_jacket_check=False, timer_delay=10, parent=None, logger: Logger = None):
+                 is_heltmet_check=False, is_jacket_check=False, timer_delay=10, parent=None):
         super().__init__(parent)
         self.frame_count = None
         self.camera_name = camera_name
@@ -264,7 +286,6 @@ class CameraWidget(QWidget):
         self.timer_delay = timer_delay
         self.is_warning = False
         self.initUI(camera_name)
-        self.logger = logger
         self.model = YOLO(yolo_model_path)
         # Fuse + move to device + half (nếu CUDA)
         try:
@@ -282,10 +303,7 @@ class CameraWidget(QWidget):
 
         # Start CameraThread (detect+annotate in worker thread, UI receives QImage via signal)
         i = int(camera_src) if isinstance(camera_src, int) else camera_src
-        if self.logger:
-            self.logger.info(f"Camera ID = {i}")
-        else:
-            print(f"Camera ID = {i}")
+        print(i)
         self.enable_flags = {
             'fell': self.is_fell_check,
             'helmet': self.is_helmet_check,
@@ -302,8 +320,7 @@ class CameraWidget(QWidget):
             classes=self.classes,
             colors=self.colors,
             enable_flags=self.enable_flags,
-            camera_name=self.camera_name,
-            logger=self.logger
+            camera_name=self.camera_name
         )
         self.camera_thread.frame_captured.connect(self._on_frame)
         self.camera_thread.warning_changed.connect(self._on_warning_changed)

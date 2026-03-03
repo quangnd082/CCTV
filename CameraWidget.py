@@ -31,27 +31,46 @@ class VideoCapture:
         self.logger = logger
         self.source = name
         self.is_file = isinstance(name, str) and os.path.isfile(name)
-        self.cap = cv2.VideoCapture(name)
-        if not self.is_file:
-            try:
-                self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-            except Exception:
-                pass
+        self.cap = None
+        self.running = True
+
+        # mở kết nối lần đầu
+        self._open_capture()
+
         self.q = queue.Queue(maxsize=1)
         self._t = threading.Thread(target=self._reader, name=f"VideoReader-{self.source}", daemon=True)
         self._t.start()
 
     # read frames as soon as they are available, keeping only most recent one
     def _reader(self):
-        while True:
+        """
+        Vòng lặp đọc frame với cơ chế reconnect cho RTSP:
+        - Nếu mất kết nối (ret=False), thử mở lại sau một khoảng delay.
+        - Tránh break hẳn thread để RTSP tạm mất tín hiệu không làm crash app.
+        """
+        reconnect_delay = 2.0  # giây
+        while self.running:
+            # đảm bảo cap đang mở; nếu không, thử mở lại
+            if self.cap is None or not self.cap.isOpened():
+                self._open_capture()
+                if self.cap is None or not self.cap.isOpened():
+                    time.sleep(reconnect_delay)
+                    continue
+
             ret, frame = self.cap.read()
             if not ret:
                 if self.logger:
-                    self.logger.warning("FAIL READ FRAME")
+                    self.logger.warning(f"FAIL READ FRAME from {self.source}, try reconnect...")
                 else:
-                    print("FAIL READ FRAME")
-                time.sleep(0.1)
-                break
+                    print(f"FAIL READ FRAME from {self.source}, try reconnect...")
+                # đóng lại và chờ rồi reconnect
+                try:
+                    self.cap.release()
+                except Exception:
+                    pass
+                self.cap = None
+                time.sleep(reconnect_delay)
+                continue
             if not self.q.empty():
                 try:
                     self.q.get_nowait()  # discard previous (unprocessed) frame
@@ -67,13 +86,31 @@ class VideoCapture:
 
     def release(self):
         try:
-            self.cap.release()
+            self.running = False
+            if self.cap is not None:
+                self.cap.release()
         finally:
             if hasattr(self, '_t') and self._t.is_alive():
                 try:
                     self._t.join(timeout=0.2)
                 except Exception:
                     pass
+
+    def _open_capture(self):
+        """Mở hoặc mở lại VideoCapture với cấu hình phù hợp (RTSP/USB/file)."""
+        try:
+            self.cap = cv2.VideoCapture(self.source)
+            if not self.is_file and self.cap is not None and self.cap.isOpened():
+                try:
+                    self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                except Exception:
+                    pass
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error opening capture {self.source}: {e}")
+            else:
+                print(f"Error opening capture {self.source}: {e}")
+            self.cap = None
 
 
 class CameraThread(QThread):

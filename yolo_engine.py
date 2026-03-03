@@ -54,10 +54,12 @@ class YoloEngine(QObject):
         super().__init__(parent)
         self._models: Dict[str, YOLO] = {}
         self._device = 0 if torch.cuda.is_available() else "cpu"
-        self._queue: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=32)
+        self._queue: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=8)
         self._lock = threading.Lock()
         self._running = True
         self._camera_states: Dict[str, CameraState] = {}
+        # kích thước batch tối đa cho inference
+        self._batch_size = 4
 
         self._worker = threading.Thread(target=self._worker_loop, name="YoloEngineWorker", daemon=True)
         self._worker.start()
@@ -164,36 +166,83 @@ class YoloEngine(QObject):
         torch.set_grad_enabled(False)
         while self._running:
             try:
-                job = self._queue.get(timeout=0.5)
+                first_job = self._queue.get(timeout=0.5)
             except queue.Empty:
                 continue
 
-            if job is None:
+            if first_job is None:
                 continue
 
+            # Gom batch các job tương thích (cùng model_path, img_size, yolo_rate)
+            jobs = [first_job]
+            model_path = first_job["model_path"]
+            img_size = first_job["img_size"]
+            yolo_rate = first_job["yolo_rate"]
+
             try:
-                self._process_job(job)
+                while len(jobs) < self._batch_size:
+                    next_job = self._queue.get_nowait()
+                    if next_job is None:
+                        continue
+                    if (
+                        next_job.get("model_path") == model_path
+                        and next_job.get("img_size") == img_size
+                        and next_job.get("yolo_rate") == yolo_rate
+                    ):
+                        jobs.append(next_job)
+                    else:
+                        # không batch được cùng nhóm, đưa lại vào queue để xử lý sau
+                        self._queue.put(next_job)
+                        break
+            except queue.Empty:
+                pass
+
+            try:
+                self._process_batch(jobs)
             except Exception as e:
-                logger = job.get("logger")
+                # nếu lỗi, cố gắng log theo logger của job đầu
+                logger = first_job.get("logger")
                 if logger:
-                    logger.error(f"YoloEngine job error: {e}")
+                    logger.error(f"YoloEngine batch job error: {e}")
+
+    def _process_batch(self, jobs: list[Dict[str, Any]]) -> None:
+        if not jobs:
+            return
+
+        # Dùng tham số chung từ job đầu tiên cho phần predict (đã đảm bảo tương thích trong _worker_loop)
+        base_job = jobs[0]
+        model_path = base_job["model_path"]
+        img_size = base_job["img_size"]
+        yolo_rate = base_job["yolo_rate"]
+        logger: Optional[Logger] = base_job.get("logger")
+
+        model = self._get_model(model_path, logger)
+
+        predict_params = {
+            "imgsz": img_size,
+            "conf": float(yolo_rate),
+            "device": self._device,
+            "verbose": False,
+            "agnostic_nms": True,
+        }
+        if torch.cuda.is_available():
+            predict_params["half"] = True
+
+        frames = [job["frame"] for job in jobs]
+        results = model.predict(frames, **predict_params)
+
+        for job, frame, r in zip(jobs, frames, results):
+            self._process_single(job, frame, r, model)
 
     def _process_job(self, job: Dict[str, Any]) -> None:
-        camera_name = job["camera_name"]
+        """Fallback xử lý 1 job (giữ lại cho tương thích, dùng chung với logic batch)."""
         frame = job["frame"]
         model_path = job["model_path"]
         img_size = job["img_size"]
         yolo_rate = job["yolo_rate"]
-        roi_check = job["roi_check"]
-        classes = job["classes"]
-        colors = job["colors"]
-        enable_flags = job["enable_flags"]
         logger: Optional[Logger] = job.get("logger")
 
-        state = self._get_camera_state(camera_name)
         model = self._get_model(model_path, logger)
-
-        x1, x2, y1, y2 = roi_check
 
         predict_params = {
             "imgsz": img_size,
@@ -206,12 +255,26 @@ class YoloEngine(QObject):
             predict_params["half"] = True
 
         results = model.predict(frame, **predict_params)
+        r = results[0]
+        self._process_single(job, frame, r, model)
+
+    def _process_single(self, job: Dict[str, Any], frame, r, model: YOLO) -> None:
+        camera_name = job["camera_name"]
+        roi_check = job["roi_check"]
+        classes = job["classes"]
+        colors = job["colors"]
+        yolo_rate = job["yolo_rate"]
+        enable_flags = job["enable_flags"]
+        logger: Optional[Logger] = job.get("logger")
+
+        state = self._get_camera_state(camera_name)
+
+        x1, x2, y1, y2 = roi_check
 
         cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         annotator = Annotator(cv2image, line_width=2, font_size=16)
 
         is_warning = False
-        r = results[0]
         boxes = r.boxes
 
         for box in boxes:

@@ -2,7 +2,7 @@ import sys
 import math
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QVBoxLayout
 
-from camera_control_ok import CameraWidget
+from CameraWidget import CameraWidget
 
 
 from display_image import LogWidget

@@ -143,7 +143,7 @@ class CameraThread(QThread):
 
         self.camera_name = camera_name or str(self.camera_id)
         self.camera_slug = safe_name(unidecode(self.camera_name))
-        self.save_dir = Path("./LastDetectionWarning")
+        self.save_dir = Path("../LastDetectionWarning")
         self.save_dir.mkdir(parents=True, exist_ok=True)
 
         # Inference config

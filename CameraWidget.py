@@ -145,7 +145,6 @@ class CameraThread(QThread):
                 fell_ok = (ci == 9 and self.enable_flags.get('fell', False))
                 jacket_ok = (ci == 8 and self.enable_flags.get('jacket', False))
 
-
                 # an toàn label & màu
                 # ưu tiên tên trong config; nếu trống hoặc thiếu thì fallback sang model.names
                 try:
@@ -162,7 +161,8 @@ class CameraThread(QThread):
                             name_from_model = self.model.names[ci]
                 except Exception:
                     pass
-                obj_name = name_from_cfg if (isinstance(name_from_cfg, str) and len(name_from_cfg) > 0) else (name_from_model if name_from_model else str(ci))
+                obj_name = name_from_cfg if (isinstance(name_from_cfg, str) and len(name_from_cfg) > 0) else (
+                    name_from_model if name_from_model else str(ci))
                 try:
                     conf_val = float(box.conf)
                 except Exception:
@@ -170,7 +170,7 @@ class CameraThread(QThread):
                 label = f"{obj_name} {conf_val:.2f}"
                 color_warn = tuple(self.colors[ci]) if 0 <= ci < len(self.colors) else (255, 0, 0)
 
-                if helmet_ok or fell_ok or jacket_ok :
+                if helmet_ok or fell_ok or jacket_ok:
                     is_warning = True
                     annotator.box_label([bx1, by1, bx2, by2], label, color=color_warn)
                 else:
@@ -182,7 +182,7 @@ class CameraThread(QThread):
                 img = annotator.result()
                 now_ts = time.time()
                 if now_ts - self._last_warn_ts > 5.0:
-                    
+
                     try:
                         ts = datetime.now().strftime("%Y%m%d%H%M%S")
                         file_path = self.save_dir / f"{self.camera_slug}_{ts}_warning.jpg"
@@ -294,9 +294,6 @@ class CameraWidget(QWidget):
         self._warn_show_ms = 2000  # show label for 2 seconds when allowed
         self._warn_cooldown_sec = 600.0  # 10 minutes cooldown between shows
 
-
-
-
     def initUI(self, camera_name="None"):
 
         # Grid tổng
@@ -312,7 +309,6 @@ class CameraWidget(QWidget):
         self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.layout.addWidget(self.image_label, 0, 0, 3, 3)  # Đặt label vào ô (0, 1)
-
 
         # Label hiển thị tên camera
         self.camera_name_label = QLabel(self)
@@ -384,7 +380,7 @@ class CameraWidget(QWidget):
         self.label_warning.setStyleSheet(
             "font-size: 32px; font-weight: bold; color: #ff4040;"
             "background-color: rgba(0, 0, 0, 180); padding: 8px;")
-        self.layout.addWidget(self.label_warning, 1, 1,1,1, Qt.AlignCenter)
+        self.layout.addWidget(self.label_warning, 1, 1, 1, 1, Qt.AlignCenter)
 
         # Set chiều rộng, cao cho các grid
         self.layout.setRowMinimumHeight(2, 50)

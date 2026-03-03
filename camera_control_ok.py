@@ -6,12 +6,9 @@ from PIL import Image
 import io
 
 import cv2
-import torch
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QImage, QPixmap, QIcon, QPainter, QPen
 from PyQt5.QtCore import QTimer, QSize, Qt, QThread, pyqtSignal
-from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator
 from datetime import datetime
 import base64
 from unidecode import unidecode
@@ -21,21 +18,11 @@ from queue import Queue
 import gc
 from display_image import *
 
-import os, re
+import os
 from pathlib import Path
 from Logging import Logger
 
-INVALID_CHARS = r'[^A-Za-z0-9_.-]'
-
-
-
-
-def safe_name(s: str) -> str:
-    """Biến chuỗi thành tên file an toàn cho Windows."""
-    s = os.path.basename(str(s))  # nếu là path, chỉ lấy tên cuối
-    s = s.replace(':', '_')  # bỏ dấu :
-    s = re.sub(INVALID_CHARS, '_', s)  # thay kí tự lạ
-    return s[:80]
+from yolo_engine import get_yolo_engine, safe_name
 
 
 class VideoCapture:
@@ -114,7 +101,8 @@ class CameraThread(QThread):
         self.save_dir.mkdir(parents=True, exist_ok=True)
 
         # Inference config
-        self.device = 0 if torch.cuda.is_available() else 'cpu'
+        # giữ cấu trúc cũ nhưng không còn dùng trực tiếp trong kiến trúc mới
+        self.device = 0
         self.predict_params = {
             'imgsz': self.img_size,
             'conf': float(self.yolo_rate),
@@ -122,8 +110,6 @@ class CameraThread(QThread):
             'verbose': False,
             'agnostic_nms': True
         }
-        if torch.cuda.is_available():
-            self.predict_params['half'] = True
         self._last_warn_ts = 0.0
         self._last_warning_state = False
 
@@ -134,9 +120,10 @@ class CameraThread(QThread):
             if frame is None:
                 time.sleep(0.01)
                 continue
+            # logic cũ hiện không còn được sử dụng trong kiến trúc mới
             results = self.model.predict(frame, **self.predict_params)
             cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            annotator = Annotator(cv2image, line_width=2, font_size=16)
+            annotator = None
             is_warning = False
             r = results[0]
             boxes = r.boxes
@@ -248,6 +235,7 @@ class CameraWidget(QWidget):
         super().__init__(parent)
         self.frame_count = None
         self.camera_name = camera_name
+        self.camera_src = camera_src
         self.img_size = img_size
         self.yolo_model_path = yolo_model_path
         self.yolo_rate = yolo_rate
@@ -265,22 +253,20 @@ class CameraWidget(QWidget):
         self.is_warning = False
         self.initUI(camera_name)
         self.logger = logger
-        self.model = YOLO(yolo_model_path)
-        # Fuse + move to device + half (nếu CUDA)
-        try:
-            self.model.fuse()
-            if hasattr(self.model, 'model') and hasattr(self.model.model, 'fuse'):
-                self.model.model.fuse()
-        except Exception:
-            pass
-        if torch.cuda.is_available():
-            try:
-                self.model.to('cuda')
-                self.model.model.half()
-            except Exception:
-                pass
 
-        # Start CameraThread (detect+annotate in worker thread, UI receives QImage via signal)
+        # Engine YOLO dùng chung
+        self.engine = get_yolo_engine()
+
+        # Video capture riêng cho từng camera (thread nhẹ đọc frame)
+        self.video_capture = VideoCapture(camera_src, logger=self.logger)
+
+        # Cờ và tham số điều phối FPS gửi vào YOLO
+        self._infer_in_flight = False
+        self._target_fps = 8.0  # tối đa 8 inference/giây cho mỗi camera
+        self._infer_interval = 1.0 / self._target_fps
+        self._last_sent_ts = 0.0
+
+        # Log camera ID
         i = int(camera_src) if isinstance(camera_src, int) else camera_src
         if self.logger:
             self.logger.info(f"Camera ID = {i}")
@@ -293,21 +279,15 @@ class CameraWidget(QWidget):
             'fire': self.is_fire_check,
             'smoke': self.is_smoke_check
         }
-        self.camera_thread = CameraThread(
-            camera_id=i,
-            model=self.model,
-            yolo_rate=self.yolo_rate,
-            img_size=self.img_size,
-            roi_check=self.roi_check,
-            classes=self.classes,
-            colors=self.colors,
-            enable_flags=self.enable_flags,
-            camera_name=self.camera_name,
-            logger=self.logger
-        )
-        self.camera_thread.frame_captured.connect(self._on_frame)
-        self.camera_thread.warning_changed.connect(self._on_warning_changed)
-        self.camera_thread.start()
+
+        # Nhận kết quả inference từ YoloEngine (broadcast, mỗi widget tự lọc theo camera_name)
+        self.engine.result_ready.connect(self._on_infer_result)
+
+        # Timer để lấy frame mới và gửi request inference (đã throttle)
+        self.frame_timer = QTimer(self)
+        self.frame_timer.timeout.connect(self._on_frame_timer)
+        # 30 ms ~ 33 FPS đọc frame; inference vẫn bị giới hạn bởi _target_fps
+        self.frame_timer.start(30)
 
         # UI warning display throttle: show at most once every 10 minutes
         self._last_ui_warn_ts = 0.0
@@ -325,7 +305,10 @@ class CameraWidget(QWidget):
         # Label hiển thị ảnh
         self.image_label = QLabel(self)
 
-        # self.image_label.setStyleSheet("border :5px solid green;")
+        # Style camera tile: nền tối, border subtle để UI chuyên nghiệp hơn
+        self.image_label.setStyleSheet(
+            "background-color: #101010; border: 1px solid #404040;"
+        )
         self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.layout.addWidget(self.image_label, 0, 0, 3, 3)  # Đặt label vào ô (0, 1)
@@ -334,7 +317,8 @@ class CameraWidget(QWidget):
         # Label hiển thị tên camera
         self.camera_name_label = QLabel(self)
         self.camera_name_label.setStyleSheet(
-            "font-size: 25px; font-weight: bold; padding-left : 5px;padding-right: 0px;padding-bottom: 180px;margin-top: 10px;padding-top: 0px;  color : white;")
+            "font-size: 20px; font-weight: bold; padding-left: 5px;"
+            "padding-right: 0px; margin-top: 6px; padding-top: 0px; color: #f0f0f0;")
         self.camera_name_label.setText(camera_name)
         self.layout.addWidget(self.camera_name_label, 0, 0, 1, 0)
 
@@ -343,21 +327,22 @@ class CameraWidget(QWidget):
 
         # Checkbox Helmet check
         self.checkbox_helmet = QCheckBox("Helmet")
-        self.checkbox_helmet.setStyleSheet("font-size: 16px;padding-right: 10px; font-weight: bold;  color : white;")
+        self.checkbox_helmet.setStyleSheet(
+            "font-size: 14px; padding-right: 10px; font-weight: bold; color: #e0e0e0;")
         self.checkbox_helmet.setChecked(self.is_helmet_check)
         self.checkbox_helmet.stateChanged.connect(self.onHelmetStateChange)
 
         # Checkbox Fell check
         self.checkbox_fell = QCheckBox("Fell")
         self.checkbox_fell.setStyleSheet(
-            "font-size: 16px; font-weight: bold; padding: 0px; margin-top: 0px;color: white;")
+            "font-size: 14px; font-weight: bold; padding: 0px; margin-top: 0px; color: #e0e0e0;")
         self.checkbox_fell.setChecked(self.is_fell_check)
         self.checkbox_fell.stateChanged.connect(self.onFellStateChange)
 
         # Checkbox Jacket check
         self.checkbox_jacket = QCheckBox("Jacket")
         self.checkbox_jacket.setStyleSheet(
-            "font-size: 16px; font-weight: bold; padding: 0px; margin-top: 0px;color: white;")
+            "font-size: 14px; font-weight: bold; padding: 0px; margin-top: 0px; color: #e0e0e0;")
         self.checkbox_jacket.setChecked(self.is_jacket_check)
         self.checkbox_jacket.stateChanged.connect(self.onJacketStateChange)
 
@@ -384,7 +369,8 @@ class CameraWidget(QWidget):
 
         # Label hiển thị thời gian
         self.label_date_time = QLabel()
-        self.label_date_time.setStyleSheet("font-size: 15px; font-weight: bold; padding : 5px;  color : white;")
+        self.label_date_time.setStyleSheet(
+            "font-size: 13px; font-weight: bold; padding: 5px; color: #c0c0c0;")
         self.layout.addWidget(self.label_date_time, 2, 0)
 
         # Label hiển thị WARNING
@@ -396,7 +382,8 @@ class CameraWidget(QWidget):
         self.label_warning.setVisible(False)
         self.label_warning.setContentsMargins(0, 0, 0, 0)
         self.label_warning.setStyleSheet(
-            "font-size: 40px; font-weight: bold; color : red;")
+            "font-size: 32px; font-weight: bold; color: #ff4040;"
+            "background-color: rgba(0, 0, 0, 180); padding: 8px;")
         self.layout.addWidget(self.label_warning, 1, 1,1,1, Qt.AlignCenter)
 
         # Set chiều rộng, cao cho các grid
@@ -410,9 +397,47 @@ class CameraWidget(QWidget):
 
         self.frame_count = 0
 
-    def _on_frame(self, q_image: QImage):
+    def _on_frame_timer(self):
+        """Đọc frame mới và (nếu đủ điều kiện) gửi request inference vào YoloEngine."""
+        frame = self.video_capture.read()
+        if frame is None:
+            return
 
-        self.image_label.setPixmap(QPixmap.fromImage(q_image).scaled(self.image_label.size()))
+        now_ts = time.monotonic()
+        if (not self._infer_in_flight) and (now_ts - self._last_sent_ts >= self._infer_interval):
+            self._infer_in_flight = True
+            self._last_sent_ts = now_ts
+            self.engine.request_inference(
+                camera_name=self.camera_name,
+                frame=frame,
+                model_path=self.yolo_model_path,
+                img_size=self.img_size,
+                yolo_rate=self.yolo_rate,
+                roi_check=self.roi_check,
+                classes=self.classes,
+                colors=self.colors,
+                enable_flags=self.enable_flags,
+                logger=self.logger,
+            )
+
+    def _on_infer_result(self, camera_name: str, q_image: QImage, is_warning: bool, meta: dict):
+        """Nhận kết quả inference từ YoloEngine (broadcast cho tất cả camera)."""
+        if camera_name != self.camera_name:
+            return
+
+        self._infer_in_flight = False
+        self.is_warning = is_warning
+
+        # Cập nhật hình ảnh với giữ tỉ lệ và smoothing cho UI đẹp hơn
+        pix = QPixmap.fromImage(q_image).scaled(
+            self.image_label.size(),
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation
+        )
+        self.image_label.setPixmap(pix)
+
+        # Cập nhật cảnh báo trên UI (giữ cơ chế cooldown)
+        self._on_warning_changed(is_warning)
 
     def _on_warning_changed(self, flag: bool):
         self.is_warning = flag
@@ -484,15 +509,15 @@ class CameraWidget(QWidget):
 
     def closeEvent(self, event):
         try:
-            if hasattr(self, 'camera_thread'):
-                self.camera_thread.stop()
+            if hasattr(self, "frame_timer"):
+                self.frame_timer.stop()
+            if hasattr(self, "video_capture"):
+                self.video_capture.release()
         except Exception:
             pass
         super().closeEvent(event)
 
     def resizeEvent(self, e):
-        if hasattr(self, 'camera_thread'):
-            self.camera_thread.display_size = (self.image_label.width(), self.image_label.height())
         super().resizeEvent(e)
 
 

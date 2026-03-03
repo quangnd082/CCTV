@@ -1,4 +1,5 @@
 import sys
+import math
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QVBoxLayout
 
 from camera_control_ok import CameraWidget
@@ -42,7 +43,10 @@ class MainWindow(QMainWindow):
         # try:
         self.config_info = load_config_file("config_data.json")
         no_of_camera = self.config_info.no_of_camera
-        max_column = self.config_info.max_column
+        # Tự động tính số cột theo số camera
+        # Ví dụ: 1→1 cột, 2–4→2 cột, 5–6→3 cột
+        auto_cols = max(1, math.ceil(math.sqrt(no_of_camera)))
+        max_column = auto_cols
 
         for i in range(0, no_of_camera):
             camera_name = self.config_info.camera_infos[i].camera_name

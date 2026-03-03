@@ -1,5 +1,5 @@
 {
-    "no_of_camera": 2,
+    "no_of_camera": 4,
     "max_column": 2,
     "camera_infos": [
           {
@@ -88,7 +88,7 @@
           },{
               "roi_check": [-1,9999,-1,9999],
               "camera_name": "CCTV 04",
-              "camera_src": "D:\\2025\\CCTV\\Videos\\38590-418590043_medium.mp4",
+              "camera_src": "D:\\2025\\CCTV\\Videos\\football.mp4",
               "img_size": 640,
               "yolo_model_path": "yolo11n.pt",
               "yolo_rate": 0.5,

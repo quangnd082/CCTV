@@ -23,6 +23,7 @@ from pathlib import Path
 from Logging import Logger
 
 from yolo_engine import get_yolo_engine, safe_name
+from ffmpeg_capture import FFmpegCapture
 
 
 class VideoCapture:
@@ -33,13 +34,32 @@ class VideoCapture:
         self.is_file = isinstance(name, str) and os.path.isfile(name)
         self.cap = None
         self.running = True
+        self._last_frame_ok_ts = 0.0
+        self._stall_timeout_sec = 5.0
+        self._reconnect_delay_sec = 2.0
+        self._reconnect_delay_max_sec = 30.0
+        self._ffmpeg: FFmpegCapture | None = None
 
-        # mở kết nối lần đầu
-        self._open_capture()
+        # Nếu là RTSP và ffmpeg khả dụng: ưu tiên FFmpegCapture (ổn định 24/7)
+        if isinstance(self.source, str) and self.source.lower().startswith("rtsp") and FFmpegCapture.is_available():
+            try:
+                # target_width có thể set theo imgsz nếu bạn muốn; tạm dùng None để giữ nguyên
+                self._ffmpeg = FFmpegCapture(self.source, target_width=None, logger=self.logger)
+            except Exception as e:
+                self._ffmpeg = None
+                if self.logger:
+                    self.logger.warning(f"FFmpegCapture init failed, fallback OpenCV: {e}")
 
-        self.q = queue.Queue(maxsize=1)
-        self._t = threading.Thread(target=self._reader, name=f"VideoReader-{self.source}", daemon=True)
-        self._t.start()
+        # Fallback OpenCV capture
+        if self._ffmpeg is None:
+            # mở kết nối lần đầu
+            self._open_capture()
+            self.q = queue.Queue(maxsize=1)
+            self._t = threading.Thread(target=self._reader, name=f"VideoReader-{self.source}", daemon=True)
+            self._t.start()
+        else:
+            self.q = None
+            self._t = None
 
     # read frames as soon as they are available, keeping only most recent one
     def _reader(self):
@@ -48,13 +68,14 @@ class VideoCapture:
         - Nếu mất kết nối (ret=False), thử mở lại sau một khoảng delay.
         - Tránh break hẳn thread để RTSP tạm mất tín hiệu không làm crash app.
         """
-        reconnect_delay = 2.0  # giây
+        reconnect_delay = float(self._reconnect_delay_sec)
         while self.running:
             # đảm bảo cap đang mở; nếu không, thử mở lại
             if self.cap is None or not self.cap.isOpened():
                 self._open_capture()
                 if self.cap is None or not self.cap.isOpened():
                     time.sleep(reconnect_delay)
+                    reconnect_delay = min(reconnect_delay * 2.0, float(self._reconnect_delay_max_sec))
                     continue
 
             ret, frame = self.cap.read()
@@ -70,15 +91,24 @@ class VideoCapture:
                     pass
                 self.cap = None
                 time.sleep(reconnect_delay)
+                reconnect_delay = min(reconnect_delay * 2.0, float(self._reconnect_delay_max_sec))
                 continue
+            # reset backoff khi đã đọc được frame
+            reconnect_delay = float(self._reconnect_delay_sec)
+            self._last_frame_ok_ts = time.monotonic()
+
             if not self.q.empty():
                 try:
                     self.q.get_nowait()  # discard previous (unprocessed) frame
                 except queue.Empty:
                     pass
             self.q.put(frame)
+        
+            # Không check stall ở đây (vì vừa có frame OK); stall sẽ được phát hiện bởi nhánh read() fail/timeout.
 
     def read(self):
+        if self._ffmpeg is not None:
+            return self._ffmpeg.read(timeout=0.5)
         try:
             return self.q.get(timeout=0.5)
         except queue.Empty:
@@ -87,10 +117,13 @@ class VideoCapture:
     def release(self):
         try:
             self.running = False
+            if self._ffmpeg is not None:
+                self._ffmpeg.release()
+                self._ffmpeg = None
             if self.cap is not None:
                 self.cap.release()
         finally:
-            if hasattr(self, '_t') and self._t.is_alive():
+            if hasattr(self, '_t') and self._t is not None and self._t.is_alive():
                 try:
                     self._t.join(timeout=0.2)
                 except Exception:
@@ -99,7 +132,25 @@ class VideoCapture:
     def _open_capture(self):
         """Mở hoặc mở lại VideoCapture với cấu hình phù hợp (RTSP/USB/file)."""
         try:
-            self.cap = cv2.VideoCapture(self.source)
+            # Ưu tiên FFmpeg backend cho RTSP để ổn định hơn (nếu build OpenCV có FFmpeg)
+            if isinstance(self.source, str) and self.source.lower().startswith("rtsp"):
+                try:
+                    self.cap = cv2.VideoCapture(self.source, cv2.CAP_FFMPEG)
+                except Exception:
+                    self.cap = cv2.VideoCapture(self.source)
+            else:
+                self.cap = cv2.VideoCapture(self.source)
+
+            # set timeout nếu OpenCV build hỗ trợ (không phải build nào cũng có)
+            try:
+                self.cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 5000)
+            except Exception:
+                pass
+            try:
+                self.cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)
+            except Exception:
+                pass
+
             if not self.is_file and self.cap is not None and self.cap.isOpened():
                 try:
                     self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -299,7 +350,8 @@ class CameraWidget(QWidget):
 
         # Cờ và tham số điều phối FPS gửi vào YOLO
         self._infer_in_flight = False
-        self._target_fps = 8.0  # tối đa 8 inference/giây cho mỗi camera
+        # Mặc định ưu tiên ổn định RTSP 24/7 cho 4–6 camera
+        self._target_fps = 6.0  # tối đa 6 inference/giây cho mỗi camera
         self._infer_interval = 1.0 / self._target_fps
         self._last_sent_ts = 0.0
 

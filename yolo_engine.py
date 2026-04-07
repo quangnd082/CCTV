@@ -54,7 +54,8 @@ class YoloEngine(QObject):
         super().__init__(parent)
         self._models: Dict[str, YOLO] = {}
         self._device = 0 if torch.cuda.is_available() else "cpu"
-        self._queue: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=8)
+        # Queue nhỏ để tránh tăng latency khi overload (hợp cho 4–6 camera)
+        self._queue: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=16)
         self._lock = threading.Lock()
         self._running = True
         self._camera_states: Dict[str, CameraState] = {}

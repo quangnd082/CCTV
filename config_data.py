@@ -6,7 +6,7 @@ class CameraInfo:
                  img_size, yolo_model_path,
                  yolo_rate, classes, colors, is_fell_check,is_helmet_check,is_jacket_check,is_smoke_check,
                  is_fire_check,
-                 timer_delay, roi_check):
+                 timer_delay, roi_check, enable_flags=None):
         self.camera_name = camera_name
         self.camera_src = camera_src
         self.img_size = img_size
@@ -20,6 +20,10 @@ class CameraInfo:
         self.is_fire_check = is_fire_check
         self.is_smoke_check = is_smoke_check
         self.timer_delay = timer_delay
+        # enable_flags có thể chứa cả cờ bật camera và cờ bật/tắt rule detect
+        # Ví dụ:
+        # {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0}
+        self.enable_flags = enable_flags or {}
 
         self.roi_check = roi_check
 
@@ -32,6 +36,7 @@ class CameraInfo:
             'yolo_rate': self.yolo_rate,
             'classes': self.classes,
             'colors': self.colors,
+            'enable_flags': self.enable_flags,
             'is_fell_check': self.is_fell_check,
             'is_helmet_check': self.is_helmet_check,
             'is_jacket_check': self.is_jacket_check,
@@ -43,11 +48,37 @@ class CameraInfo:
 
     @classmethod
     def from_dict(cls, camera_info):
+        enable_flags = camera_info.get("enable_flags")
+
+        # Backward compatible:
+        # - Nếu enable_flags không có -> suy ra từ is_*_check và mặc định dùng camera
+        # - Nếu enable_flags là int (0/1) -> hiểu là use_camera
+        if enable_flags is None:
+            enable_flags = {
+                "use_camera": 1,
+                "fell": camera_info.get("is_fell_check", 0),
+                "helmet": camera_info.get("is_helmet_check", 0),
+                "jacket": camera_info.get("is_jacket_check", 0),
+                "fire": camera_info.get("is_fire_check", 0),
+                "smoke": camera_info.get("is_smoke_check", 0),
+            }
+        elif isinstance(enable_flags, int):
+            enable_flags = {
+                "use_camera": int(enable_flags),
+                "fell": camera_info.get("is_fell_check", 0),
+                "helmet": camera_info.get("is_helmet_check", 0),
+                "jacket": camera_info.get("is_jacket_check", 0),
+                "fire": camera_info.get("is_fire_check", 0),
+                "smoke": camera_info.get("is_smoke_check", 0),
+            }
+        elif isinstance(enable_flags, dict):
+            enable_flags.setdefault("use_camera", 1)
+
         return cls(camera_info['camera_name'], camera_info['camera_src'], camera_info['img_size'],
                    camera_info['yolo_model_path'], camera_info['yolo_rate'], camera_info['classes'],
                    camera_info['colors'], camera_info['is_fell_check'], camera_info['is_helmet_check'],
-                   camera_info['is_jacket_check'],camera_info['is_fire_check'], camera_info['is_smoke_check'],
-                    camera_info['timer_delay'], camera_info['roi_check'])
+                   camera_info['is_jacket_check'], camera_info['is_fire_check'], camera_info['is_smoke_check'],
+                   camera_info['timer_delay'], camera_info['roi_check'], enable_flags=enable_flags)
 
 
 class ConfigInfo:

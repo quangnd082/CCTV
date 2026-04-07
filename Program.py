@@ -42,28 +42,39 @@ class MainWindow(QMainWindow):
         # load config file
         # try:
         self.config_info = load_config_file("config_data.json")
-        no_of_camera = self.config_info.no_of_camera
+        # Lọc camera theo enable_flags.use_camera (1: dùng, 0: bỏ qua)
+        enabled_camera_infos = []
+        for ci in self.config_info.camera_infos:
+            flags = getattr(ci, "enable_flags", None) or {}
+            use_cam = int(flags.get("use_camera", 1))
+            if use_cam == 1:
+                enabled_camera_infos.append(ci)
+
+        no_of_camera = len(enabled_camera_infos)
         # Tự động tính số cột theo số camera
         # Ví dụ: 1→1 cột, 2–4→2 cột, 5–6→3 cột
         auto_cols = max(1, math.ceil(math.sqrt(no_of_camera)))
         max_column = auto_cols
 
-        for i in range(0, no_of_camera):
-            camera_name = self.config_info.camera_infos[i].camera_name
-            camera_src = self.config_info.camera_infos[i].camera_src
-            img_size = self.config_info.camera_infos[i].img_size
-            yolo_model_path = self.config_info.camera_infos[i].yolo_model_path
-            yolo_rate = self.config_info.camera_infos[i].yolo_rate
-            classes = self.config_info.camera_infos[i].classes
-            colors = tuple(map(tuple, self.config_info.camera_infos[i].colors))
-            is_fell_check = self.config_info.camera_infos[i].is_fell_check == 1
-            is_helmet_check = self.config_info.camera_infos[i].is_helmet_check == 1
-            is_jacket_check = self.config_info.camera_infos[i].is_jacket_check == 1
-            is_fire_check = self.config_info.camera_infos[i].is_fire_check == 1
-            is_smoke_check = self.config_info.camera_infos[i].is_smoke_check == 1
-            timer_delay = self.config_info.camera_infos[i].timer_delay
+        for i, cam_info in enumerate(enabled_camera_infos):
+            camera_name = cam_info.camera_name
+            camera_src = cam_info.camera_src
+            img_size = cam_info.img_size
+            yolo_model_path = cam_info.yolo_model_path
+            yolo_rate = cam_info.yolo_rate
+            classes = cam_info.classes
+            colors = tuple(map(tuple, cam_info.colors))
 
-            roi_check = self.config_info.camera_infos[i].roi_check
+            # Ưu tiên enable_flags (mới), fallback sang is_*_check (cũ)
+            flags = getattr(cam_info, "enable_flags", None) or {}
+            is_fell_check = bool(int(flags.get("fell", cam_info.is_fell_check)) == 1)
+            is_helmet_check = bool(int(flags.get("helmet", cam_info.is_helmet_check)) == 1)
+            is_jacket_check = bool(int(flags.get("jacket", cam_info.is_jacket_check)) == 1)
+            is_fire_check = bool(int(flags.get("fire", cam_info.is_fire_check)) == 1)
+            is_smoke_check = bool(int(flags.get("smoke", cam_info.is_smoke_check)) == 1)
+            timer_delay = cam_info.timer_delay
+
+            roi_check = cam_info.roi_check
 
             widget = CameraWidget(camera_name=camera_name, camera_src=camera_src, img_size=img_size,
                                   yolo_model_path=yolo_model_path,

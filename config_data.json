@@ -21,14 +21,9 @@
                   "fire",
                   "smoke"
               ],
-              "colors": [[0,0,255],[0,255,0],[255,0,255],[0,0,0],[0,0,0],
-                        [255,0,0],[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+              "colors": ["#0000FF","#00FF00","#FF00FF","#000000","#000000",
+                        "#FF0000","#FF0000","#FF0000","#FF0000","#FF0000"],
               "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
-              "is_fell_check": 1,
-              "is_helmet_check": 1,
-              "is_jacket_check": 0,
-              "is_fire_check": 0,
-              "is_smoke_check": 0,
               "timer_delay": 100
           },
         {
@@ -50,14 +45,9 @@
                   "boat",
                   "trafficlight"
               ],
-              "colors": [[0,0,255],[0,255,0],[255,0,255],[0,0,0],[0,0,0],
-                        [255,0,0],[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+              "colors": ["#0000FF","#00FF00","#FF00FF","#000000","#000000",
+                        "#FF0000","#FF0000","#FF0000","#FF0000","#FF0000"],
               "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
-              "is_fell_check": 1,
-              "is_helmet_check": 1,
-              "is_jacket_check": 0,
-              "is_fire_check": 0,
-              "is_smoke_check": 0,
               "timer_delay": 100
           },
         {
@@ -79,14 +69,9 @@
                   "boat",
                   "trafficlight"
               ],
-              "colors": [[0,0,255],[0,255,0],[255,0,255],[0,0,0],[0,0,0],
-                        [255,0,0],[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+              "colors": ["#0000FF","#00FF00","#FF00FF","#000000","#000000",
+                        "#FF0000","#FF0000","#FF0000","#FF0000","#FF0000"],
               "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
-              "is_fell_check": 1,
-              "is_helmet_check": 1,
-              "is_jacket_check": 0,
-              "is_fire_check": 0,
-              "is_smoke_check": 0,
               "timer_delay": 100
           },{
               "roi_check": [-1,9999,-1,9999],
@@ -107,14 +92,9 @@
                   "boat",
                   "trafficlight"
               ],
-              "colors": [[0,0,255],[0,255,0],[255,0,255],[0,0,0],[0,0,0],
-                        [255,0,0],[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+              "colors": ["#0000FF","#00FF00","#FF00FF","#000000","#000000",
+                        "#FF0000","#FF0000","#FF0000","#FF0000","#FF0000"],
               "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 1, "smoke": 1},
-              "is_fell_check": 1,
-              "is_helmet_check": 1,
-              "is_jacket_check": 0,
-              "is_fire_check": 1,
-              "is_smoke_check": 1,
               "timer_delay": 100
           }
     ]

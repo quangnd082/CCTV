@@ -1,6 +1,29 @@
 import json
 
 
+def _hex_to_rgb_list(s: str):
+    s = str(s).strip()
+    if s.startswith("#"):
+        s = s[1:]
+    if len(s) != 6:
+        raise ValueError(f"Invalid hex color: {s!r}")
+    r = int(s[0:2], 16)
+    g = int(s[2:4], 16)
+    b = int(s[4:6], 16)
+    return [r, g, b]
+
+
+def _normalize_color(c):
+    """
+    Hỗ trợ 2 format:
+    - [r,g,b] (int)
+    - \"#RRGGBB\" (hex string)
+    """
+    if isinstance(c, str):
+        return _hex_to_rgb_list(c)
+    return c
+
+
 class CameraInfo:
     def __init__(self, camera_name, camera_src,
                  img_size, yolo_model_path,
@@ -74,11 +97,18 @@ class CameraInfo:
         elif isinstance(enable_flags, dict):
             enable_flags.setdefault("use_camera", 1)
 
-        return cls(camera_info['camera_name'], camera_info['camera_src'], camera_info['img_size'],
-                   camera_info['yolo_model_path'], camera_info['yolo_rate'], camera_info['classes'],
-                   camera_info['colors'], camera_info['is_fell_check'], camera_info['is_helmet_check'],
-                   camera_info['is_jacket_check'], camera_info['is_fire_check'], camera_info['is_smoke_check'],
-                   camera_info['timer_delay'], camera_info['roi_check'], enable_flags=enable_flags)
+        colors = [_normalize_color(c) for c in camera_info.get("colors", [])]
+        is_fell_check = camera_info.get("is_fell_check", 0)
+        is_helmet_check = camera_info.get("is_helmet_check", 0)
+        is_jacket_check = camera_info.get("is_jacket_check", 0)
+        is_fire_check = camera_info.get("is_fire_check", 0)
+        is_smoke_check = camera_info.get("is_smoke_check", 0)
+
+        return cls(camera_info.get('camera_name'), camera_info.get('camera_src'), camera_info.get('img_size', 640),
+                   camera_info.get('yolo_model_path', ''), camera_info.get('yolo_rate', 0.5), camera_info.get('classes', []),
+                   colors, is_fell_check, is_helmet_check,
+                   is_jacket_check, is_fire_check, is_smoke_check,
+                   camera_info.get('timer_delay', 100), camera_info.get('roi_check', [-1, 9999, -1, 9999]), enable_flags=enable_flags)
 
 
 class ConfigInfo:

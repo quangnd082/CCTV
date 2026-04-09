@@ -164,154 +164,6 @@ class VideoCapture:
             self.cap = None
 
 
-class CameraThread(QThread):
-    frame_captured = pyqtSignal(QImage)
-    warning_changed = pyqtSignal(bool)
-
-    def __init__(self, camera_id, model, yolo_rate, img_size, roi_check, classes, colors,
-                 enable_flags, camera_name=None, logger: Logger = None):
-        super().__init__()
-        self.camera_id = camera_id
-        self.model = model
-        self.yolo_rate = yolo_rate
-        self.img_size = img_size
-        self.roi_check = roi_check or [-1, 9999, -1, 9999]
-        self.classes = classes
-        self.colors = colors
-        self.enable_flags = enable_flags
-        self.running = True
-        self.logger = logger
-        self.video_capture = VideoCapture(camera_id, logger=self.logger)
-
-        self.camera_name = camera_name or str(self.camera_id)
-        self.camera_slug = safe_name(unidecode(self.camera_name))
-        self.save_dir = Path("./LastDetectionWarning")
-        self.save_dir.mkdir(parents=True, exist_ok=True)
-
-        # Inference config
-        # giữ cấu trúc cũ nhưng không còn dùng trực tiếp trong kiến trúc mới
-        self.device = 0
-        self.predict_params = {
-            'imgsz': self.img_size,
-            'conf': float(self.yolo_rate),
-            'device': self.device,
-            'verbose': False,
-            'agnostic_nms': True
-        }
-        self._last_warn_ts = 0.0
-        self._last_warning_state = False
-
-    def run(self):
-        x1, x2, y1, y2 = self.roi_check
-        while self.running:
-            frame = self.video_capture.read()
-            if frame is None:
-                time.sleep(0.01)
-                continue
-            # logic cũ hiện không còn được sử dụng trong kiến trúc mới
-            results = self.model.predict(frame, **self.predict_params)
-            cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            annotator = None
-            is_warning = False
-            r = results[0]
-            boxes = r.boxes
-            for box in boxes:
-                try:
-                    if float(box.conf) <= float(self.yolo_rate):
-                        continue
-                except Exception:
-                    pass
-                b = box.xyxy[0]
-                try:
-                    bx1, by1, bx2, by2 = [float(v) for v in b]
-                except Exception:
-                    bx1, by1, bx2, by2 = float(b[0]), float(b[1]), float(b[2]), float(b[3])
-                if bx1 < x1 or by1 < y1 or bx2 > x2 or by2 > y2:
-                    continue
-                ci = int(box.cls)
-                helmet_ok = (ci == 5 and self.enable_flags.get('helmet', False))
-                fell_ok = (ci == 9 and self.enable_flags.get('fell', False))
-                jacket_ok = (ci == 8 and self.enable_flags.get('jacket', False))
-
-                # an toàn label & màu
-                # ưu tiên tên trong config; nếu trống hoặc thiếu thì fallback sang model.names
-                try:
-                    name_from_cfg = self.classes[ci] if 0 <= ci < len(self.classes) else None
-                except Exception:
-                    name_from_cfg = None
-                name_from_model = None
-                try:
-                    if hasattr(self.model, 'names') and self.model.names is not None:
-                        # ultralytics .names có thể là dict hoặc list
-                        if isinstance(self.model.names, dict):
-                            name_from_model = self.model.names.get(ci)
-                        elif 0 <= ci < len(self.model.names):
-                            name_from_model = self.model.names[ci]
-                except Exception:
-                    pass
-                obj_name = name_from_cfg if (isinstance(name_from_cfg, str) and len(name_from_cfg) > 0) else (
-                    name_from_model if name_from_model else str(ci))
-                try:
-                    conf_val = float(box.conf)
-                except Exception:
-                    conf_val = 0.0
-                label = f"{obj_name} {conf_val:.2f}"
-                color_warn = tuple(self.colors[ci]) if 0 <= ci < len(self.colors) else (255, 0, 0)
-
-                if helmet_ok or fell_ok or jacket_ok:
-                    is_warning = True
-                    annotator.box_label([bx1, by1, bx2, by2], label, color=color_warn)
-                else:
-                    annotator.box_label([bx1, by1, bx2, by2], label, color=(0, 255, 0))
-            img = annotator.result()
-            h, w, _ = img.shape
-            if is_warning:
-                annotator.box_label([5, 5, w - 5, h - 5], "", color=(255, 0, 0))
-                img = annotator.result()
-                now_ts = time.time()
-                if now_ts - self._last_warn_ts > 5.0:
-
-                    try:
-                        ts = datetime.now().strftime("%Y%m%d%H%M%S")
-                        file_path = self.save_dir / f"{self.camera_slug}_{ts}_warning.jpg"
-                        threading.Thread(
-                            target=self.save_image,
-                            args=(str(file_path), img.copy()),
-                            daemon=True
-                        ).start()
-                        self._last_warn_ts = time.time()
-                    except Exception as e:
-                        if self.logger:
-                            self.logger.error(f"save image start error: {e}")
-                        else:
-                            print(f"save image start error: {e}")
-            # báo trạng thái warning ra UI nếu có thay đổi
-            if is_warning != self._last_warning_state:
-                self._last_warning_state = is_warning
-                if is_warning:
-                    if self.logger:
-                        self.logger.warning(f"Violation detected")
-                    else:
-                        print(f"Violation detected")
-                self.warning_changed.emit(is_warning)
-            q_image = QImage(img.data, w, h, w * 3, QImage.Format_RGB888).copy()
-            self.frame_captured.emit(q_image)
-
-    def save_image(self, file_path, img_rgb):
-        try:
-            Path(file_path).parent.mkdir(parents=True, exist_ok=True)
-            img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
-            cv2.imwrite(file_path, img_bgr)
-        except Exception as e:
-            if self.logger:
-                self.logger.error(f"save image error: {e}")
-            else:
-                print(f"save image error: {e}")
-
-    def stop(self):
-        self.running = False
-        self.video_capture.release()
-        self.wait()
 
 
 class CameraWidget(QWidget):
@@ -339,6 +191,10 @@ class CameraWidget(QWidget):
 
         self.timer_delay = timer_delay
         self.is_warning = False
+        # trạng thái tín hiệu camera (dựa trên việc có frame mới gần đây)
+        self._has_signal = False
+        self._last_frame_ts = 0.0
+        self._signal_timeout_sec = 30.0
         self.initUI(camera_name)
         self.logger = logger
 
@@ -395,7 +251,12 @@ class CameraWidget(QWidget):
         self.image_label.setStyleSheet(
             "background-color: #101010; border: 1px solid #404040;"
         )
-        self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # Quan trọng: tránh QLabel thay đổi sizeHint theo kích thước pixmap
+        # (nguyên nhân phổ biến làm widget “phóng to dần” khi setPixmap liên tục).
+        self.image_label.setScaledContents(False)
+        self.image_label.setAlignment(Qt.AlignCenter)
+        self.image_label.setMinimumSize(1, 1)
+        self.image_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
 
         self.layout.addWidget(self.image_label, 0, 0, 3, 3)  # Đặt label vào ô (0, 1)
 
@@ -405,10 +266,34 @@ class CameraWidget(QWidget):
             "font-size: 20px; font-weight: bold; padding-left: 5px;"
             "padding-right: 0px; margin-top: 6px; padding-top: 0px; color: #f0f0f0;")
         self.camera_name_label.setText(camera_name)
-        self.layout.addWidget(self.camera_name_label, 0, 0, 1, 0)
+        # Name luôn ở góc trên trái, span 2 cột để chừa không gian checkbox bên phải
+        self.layout.addWidget(self.camera_name_label, 0, 0, 1, 2, Qt.AlignTop | Qt.AlignLeft)
+
+        # Trạng thái LIVE / NO SIGNAL (chấm + text)
+        self.status_widget = QWidget(self)
+        status_layout = QHBoxLayout(self.status_widget)
+        status_layout.setContentsMargins(6, 0, 0, 0)
+        status_layout.setSpacing(6)
+
+        self.status_dot = QLabel(self.status_widget)
+        self.status_dot.setFixedSize(10, 10)
+        self.status_dot.setStyleSheet("background-color: #f0c000; border-radius: 5px;")  # default yellow
+
+        self.status_text = QLabel("NO SIGNAL", self.status_widget)
+        self.status_text.setStyleSheet("color: #f0c000; font-weight: bold; font-size: 12px;")
+
+        status_layout.addWidget(self.status_dot)
+        status_layout.addWidget(self.status_text)
+        status_layout.addStretch(1)
+
+        # Status nằm ngay dưới tên camera
+        self.layout.addWidget(self.status_widget, 1, 0, 1, 2, Qt.AlignTop | Qt.AlignLeft)
 
         # Layout hiển tḥ check box
         self.checkbox_layout = QVBoxLayout(self)
+        # đẩy xuống một chút để không dính sát mép trên
+        self.checkbox_layout.setContentsMargins(0, 6, 0, 0)
+        self.checkbox_layout.setSpacing(4)
 
         # Checkbox Helmet check
         self.checkbox_helmet = QCheckBox("Helmet")
@@ -471,11 +356,25 @@ class CameraWidget(QWidget):
             "background-color: rgba(0, 0, 0, 180); padding: 8px;")
         self.layout.addWidget(self.label_warning, 1, 1, 1, 1, Qt.AlignCenter)
 
+        # Overlay NO SIGNAL
+        self.label_no_signal = QLabel()
+        self.label_no_signal.setText("NO SIGNAL")
+        self.label_no_signal.setAlignment(Qt.AlignHCenter)
+        self.label_no_signal.setAlignment(Qt.AlignVCenter)
+        self.label_no_signal.setVisible(True)
+        self.label_no_signal.setContentsMargins(0, 0, 0, 0)
+        self.label_no_signal.setStyleSheet(
+            "font-size: 32px; font-weight: bold; color: #f0c000;"
+            "background-color: rgba(0, 0, 0, 180); padding: 8px;"
+        )
+        self.layout.addWidget(self.label_no_signal, 1, 1, 1, 1, Qt.AlignCenter)
+
         # Set chiều rộng, cao cho các grid
         self.layout.setRowMinimumHeight(2, 50)
         self.layout.setRowMinimumHeight(0, 50)
 
-        self.layout.addLayout(self.checkbox_layout, 0, 2)  # Đặt checkbox vào ô (0, 0)
+        # Checkbox luôn giữ ở góc trên bên phải
+        self.layout.addLayout(self.checkbox_layout, 0, 2, 2, 1, Qt.AlignTop | Qt.AlignRight)
         # Đặt layout chính cho widget
 
         self.image_folder_path = unidecode(self.camera_name).replace(" ", "")
@@ -486,7 +385,16 @@ class CameraWidget(QWidget):
         """Đọc frame mới và (nếu đủ điều kiện) gửi request inference vào YoloEngine."""
         frame = self.video_capture.read()
         if frame is None:
+            # nếu quá timeout thì báo mất tín hiệu
+            now_ts = time.monotonic()
+            if self._last_frame_ts <= 0 or (now_ts - self._last_frame_ts) > float(self._signal_timeout_sec):
+                self._set_signal_state(False)
             return
+
+        # có frame -> live
+        self._last_frame_ts = time.monotonic()
+        if not self._has_signal:
+            self._set_signal_state(True)
 
         now_ts = time.monotonic()
         if (not self._infer_in_flight) and (now_ts - self._last_sent_ts >= self._infer_interval):
@@ -523,6 +431,32 @@ class CameraWidget(QWidget):
 
         # Cập nhật cảnh báo trên UI (giữ cơ chế cooldown)
         self._on_warning_changed(is_warning)
+
+    def _set_signal_state(self, has_signal: bool):
+        """Cập nhật UI trạng thái tín hiệu: LIVE (green) / NO SIGNAL (yellow)."""
+        self._has_signal = bool(has_signal)
+        try:
+            if self._has_signal:
+                if hasattr(self, "status_dot") and self.status_dot:
+                    self.status_dot.setStyleSheet("background-color: #2ecc71; border-radius: 5px;")
+                if hasattr(self, "status_text") and self.status_text:
+                    self.status_text.setText("LIVE")
+                    self.status_text.setStyleSheet("color: #2ecc71; font-weight: bold; font-size: 12px;")
+                if hasattr(self, "label_no_signal") and self.label_no_signal:
+                    self.label_no_signal.setVisible(False)
+            else:
+                if hasattr(self, "status_dot") and self.status_dot:
+                    self.status_dot.setStyleSheet("background-color: #f0c000; border-radius: 5px;")
+                if hasattr(self, "status_text") and self.status_text:
+                    self.status_text.setText("NO SIGNAL")
+                    self.status_text.setStyleSheet("color: #f0c000; font-weight: bold; font-size: 12px;")
+                if hasattr(self, "label_no_signal") and self.label_no_signal:
+                    self.label_no_signal.setVisible(True)
+                # mất tín hiệu thì không hiển thị WARNING
+                if hasattr(self, "label_warning") and self.label_warning:
+                    self.label_warning.setVisible(False)
+        except Exception:
+            pass
 
     def _on_warning_changed(self, flag: bool):
         self.is_warning = flag

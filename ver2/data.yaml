@@ -1,0 +1,12 @@
+# Dataset configuration for YOLOv11 (2 classes: OK, NG)
+
+# Đường dẫn tới thư mục chứa ảnh train/val/test
+train: D:\photo\test\train
+val: D:\photo\test\val
+
+# Số lượng lớp
+nc: 1
+
+# Tên các lớp
+names:
+  0: PERSON

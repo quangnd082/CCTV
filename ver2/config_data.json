@@ -1,0 +1,103 @@
+{
+    "no_of_camera": 8,
+    "max_column": 2,
+    "max_active_cameras": 4,
+    "camera_infos": [
+        {
+            "roi_check": [-1, 9999, -1, 9999],
+            "camera_name": "CCTV 01",
+            "camera_src": "D:\\2025\\CCTV\\Videos\\xebus.mp4",
+            "img_size": 640,
+            "yolo_model_path": "yolo11n.pt",
+            "yolo_rate": 0.5,
+            "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
+            "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
+            "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "timer_delay": 100
+        },
+        {
+            "roi_check": [-1, 9999, -1, 9999],
+            "camera_name": "CCTV 02",
+            "camera_src": "D:\\2025\\CCTV\\Videos\\football.mp4",
+            "img_size": 640,
+            "yolo_model_path": "yolo11n.pt",
+            "yolo_rate": 0.5,
+            "classes": ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "trafficlight"],
+            "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
+            "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "timer_delay": 100
+        },
+        {
+            "roi_check": [-1, 9999, -1, 9999],
+            "camera_name": "CCTV 03",
+            "camera_src": "D:\\2025\\CCTV\\Videos\\football.mp4",
+            "img_size": 640,
+            "yolo_model_path": "yolo11n.pt",
+            "yolo_rate": 0.5,
+            "classes": ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "trafficlight"],
+            "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
+            "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "timer_delay": 100
+        },
+        {
+            "roi_check": [-1, 9999, -1, 9999],
+            "camera_name": "CCTV 04",
+            "camera_src": "D:\\2025\\CCTV\\Videos\\football.mp4",
+            "img_size": 640,
+            "yolo_model_path": "yolo11n.pt",
+            "yolo_rate": 0.5,
+            "classes": ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "trafficlight"],
+            "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
+            "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "timer_delay": 100
+        },
+        {
+            "roi_check": [-1, 9999, -1, 9999],
+            "camera_name": "CCTV 05",
+            "camera_src": "rtsp://user:pass@192.168.1.105/stream1",
+            "img_size": 640,
+            "yolo_model_path": "yolo11n.pt",
+            "yolo_rate": 0.5,
+            "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
+            "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
+            "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "timer_delay": 100
+        },
+        {
+            "roi_check": [-1, 9999, -1, 9999],
+            "camera_name": "CCTV 06",
+            "camera_src": "rtsp://user:pass@192.168.1.106/stream1",
+            "img_size": 640,
+            "yolo_model_path": "yolo11n.pt",
+            "yolo_rate": 0.5,
+            "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
+            "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
+            "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "timer_delay": 100
+        },
+        {
+            "roi_check": [-1, 9999, -1, 9999],
+            "camera_name": "CCTV 07",
+            "camera_src": "rtsp://user:pass@192.168.1.107/stream1",
+            "img_size": 640,
+            "yolo_model_path": "yolo11n.pt",
+            "yolo_rate": 0.5,
+            "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
+            "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
+            "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "timer_delay": 100
+        },
+        {
+            "roi_check": [-1, 9999, -1, 9999],
+            "camera_name": "CCTV 08",
+            "camera_src": "rtsp://user:pass@192.168.1.108/stream1",
+            "img_size": 640,
+            "yolo_model_path": "yolo11n.pt",
+            "yolo_rate": 0.5,
+            "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
+            "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
+            "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "timer_delay": 100
+        }
+    ]
+}

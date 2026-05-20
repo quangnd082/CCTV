@@ -1,0 +1,437 @@
+{
+    "lessons": [
+        {
+            "id": 1,
+            "title": "BÀI 1: XIN CHÀO! (你好)",
+            "stage": "Giai đoạn 3 - Từ vựng nền tảng",
+            "vocabulary": [],
+            "phonetic_analysis": "",
+            "mouth_shape": "",
+            "vietnamese_errors": "",
+            "memory_tricks": "",
+            "practical_examples": [],
+            "reading_practice": {},
+            "mini_quiz": []
+        }
+    ],
+  "pinyin": {
+    "initials": [
+      {
+        "hanzi": "b",
+        "name": "Thanh mẫu b",
+        "vietnamese_reading": "p nhẹ",
+        "mouth_shape": "Hai môi khép rồi bật nhẹ.",
+        "warning": "Không bật hơi mạnh."
+      },
+      {
+        "hanzi": "p",
+        "name": "Thanh mẫu p",
+        "vietnamese_reading": "ph bật hơi",
+        "mouth_shape": "Hai môi bật mạnh có hơi.",
+        "warning": "Đặt tay trước miệng sẽ thấy hơi."
+      },
+      {
+        "hanzi": "m",
+        "name": "Thanh mẫu m",
+        "vietnamese_reading": "mờ",
+        "mouth_shape": "Khép môi nhẹ.",
+        "warning": "Âm rung mũi."
+      },
+      {
+        "hanzi": "f",
+        "name": "Thanh mẫu f",
+        "vietnamese_reading": "phờ",
+        "mouth_shape": "Răng trên chạm môi dưới.",
+        "warning": "Không đọc thành p."
+      },
+
+      {
+        "hanzi": "d",
+        "name": "Thanh mẫu d",
+        "vietnamese_reading": "t nhẹ",
+        "mouth_shape": "Đầu lưỡi chạm nướu trên.",
+        "warning": "Không bật hơi mạnh."
+      },
+      {
+        "hanzi": "t",
+        "name": "Thanh mẫu t",
+        "vietnamese_reading": "th bật hơi",
+        "mouth_shape": "Bật hơi mạnh từ miệng.",
+        "warning": "Khác d ở lượng hơi."
+      },
+      {
+        "hanzi": "n",
+        "name": "Thanh mẫu n",
+        "vietnamese_reading": "nờ",
+        "mouth_shape": "Lưỡi chạm nướu.",
+        "warning": "Âm đi qua mũi."
+      },
+      {
+        "hanzi": "l",
+        "name": "Thanh mẫu l",
+        "vietnamese_reading": "lờ",
+        "mouth_shape": "Lưỡi chạm nhẹ nướu.",
+        "warning": "Không đọc thành n."
+      },
+
+      {
+        "hanzi": "g",
+        "name": "Thanh mẫu g",
+        "vietnamese_reading": "cờ nhẹ",
+        "mouth_shape": "Âm từ sâu cổ họng.",
+        "warning": "Không bật hơi."
+      },
+      {
+        "hanzi": "k",
+        "name": "Thanh mẫu k",
+        "vietnamese_reading": "kh bật hơi",
+        "mouth_shape": "Đẩy hơi mạnh.",
+        "warning": "Khác g ở lượng hơi."
+      },
+      {
+        "hanzi": "h",
+        "name": "Thanh mẫu h",
+        "vietnamese_reading": "h nhẹ cổ họng",
+        "mouth_shape": "Đẩy hơi từ cổ họng.",
+        "warning": "Không đọc quá nặng."
+      },
+
+      {
+        "hanzi": "j",
+        "name": "Thanh mẫu j",
+        "vietnamese_reading": "chi nhẹ",
+        "mouth_shape": "Đầu lưỡi thấp.",
+        "warning": "Không cong lưỡi."
+      },
+      {
+        "hanzi": "q",
+        "name": "Thanh mẫu q",
+        "vietnamese_reading": "chi bật hơi",
+        "mouth_shape": "Đẩy hơi mạnh hơn j.",
+        "warning": "Không đọc thành ch Việt."
+      },
+      {
+        "hanzi": "x",
+        "name": "Thanh mẫu x",
+        "vietnamese_reading": "xi nhẹ",
+        "mouth_shape": "Khe hơi hẹp.",
+        "warning": "Không đọc thành s."
+      },
+
+      {
+        "hanzi": "zh",
+        "name": "Thanh mẫu zh",
+        "vietnamese_reading": "tr cong lưỡi",
+        "mouth_shape": "Cong lưỡi lên.",
+        "warning": "Khác j vì cong lưỡi."
+      },
+      {
+        "hanzi": "ch",
+        "name": "Thanh mẫu ch",
+        "vietnamese_reading": "tr bật hơi",
+        "mouth_shape": "Cong lưỡi + bật hơi.",
+        "warning": "Hơi mạnh."
+      },
+      {
+        "hanzi": "sh",
+        "name": "Thanh mẫu sh",
+        "vietnamese_reading": "sư cong lưỡi",
+        "mouth_shape": "Cong lưỡi nhẹ.",
+        "warning": "Không đọc thành x."
+      },
+      {
+        "hanzi": "r",
+        "name": "Thanh mẫu r",
+        "vietnamese_reading": "r kiểu Trung",
+        "mouth_shape": "Cong lưỡi nhẹ.",
+        "warning": "Không rung mạnh như tiếng Việt."
+      },
+
+      {
+        "hanzi": "z",
+        "name": "Thanh mẫu z",
+        "vietnamese_reading": "ch nhẹ",
+        "mouth_shape": "Đầu lưỡi gần răng.",
+        "warning": "Không cong lưỡi."
+      },
+      {
+        "hanzi": "c",
+        "name": "Thanh mẫu c",
+        "vietnamese_reading": "ch bật hơi",
+        "mouth_shape": "Bật hơi mạnh.",
+        "warning": "Khác z ở hơi."
+      },
+      {
+        "hanzi": "s",
+        "name": "Thanh mẫu s",
+        "vietnamese_reading": "xì",
+        "mouth_shape": "Luồng hơi mạnh qua răng.",
+        "warning": "Không cong lưỡi."
+      },
+
+      {
+        "hanzi": "y",
+        "name": "Thanh mẫu y",
+        "vietnamese_reading": "i đứng đầu",
+        "mouth_shape": "Miệng kéo ngang.",
+        "warning": "Thường bỏ y để đọc phần sau."
+      },
+      {
+        "hanzi": "w",
+        "name": "Thanh mẫu w",
+        "vietnamese_reading": "u đứng đầu",
+        "mouth_shape": "Chu môi tròn.",
+        "warning": "Đọc nhẹ."
+      }
+    ],
+
+    "finals": [
+      {
+        "hanzi": "a",
+        "name": "Vận mẫu a",
+        "vietnamese_reading": "a",
+        "mouth_shape": "Mở miệng rộng.",
+        "warning": "Âm vang."
+      },
+      {
+        "hanzi": "o",
+        "name": "Vận mẫu o",
+        "vietnamese_reading": "ô",
+        "mouth_shape": "Chu môi tròn.",
+        "warning": "Không đọc quá ngắn."
+      },
+      {
+        "hanzi": "e",
+        "name": "Vận mẫu e",
+        "vietnamese_reading": "ơ",
+        "mouth_shape": "Miệng mở vừa.",
+        "warning": "Âm sâu cổ họng."
+      },
+      {
+        "hanzi": "i",
+        "name": "Vận mẫu i",
+        "vietnamese_reading": "i",
+        "mouth_shape": "Kéo ngang môi.",
+        "warning": "Không đọc quá ngắn."
+      },
+      {
+        "hanzi": "u",
+        "name": "Vận mẫu u",
+        "vietnamese_reading": "u",
+        "mouth_shape": "Chu môi.",
+        "warning": "Giữ âm tròn."
+      },
+      {
+        "hanzi": "ü",
+        "name": "Vận mẫu ü",
+        "vietnamese_reading": "uy chu môi",
+        "mouth_shape": "Chu môi tròn.",
+        "warning": "Người Việt hay đọc sai."
+      },
+
+      {
+        "hanzi": "ai",
+        "name": "Vận mẫu ai",
+        "vietnamese_reading": "ai",
+        "mouth_shape": "Mở rồi khép nhẹ.",
+        "warning": "Không đọc thành ay."
+      },
+      {
+        "hanzi": "ei",
+        "name": "Vận mẫu ei",
+        "vietnamese_reading": "ây",
+        "mouth_shape": "Miệng kéo ngang.",
+        "warning": "Âm cuối ngắn."
+      },
+      {
+        "hanzi": "ao",
+        "name": "Vận mẫu ao",
+        "vietnamese_reading": "ao",
+        "mouth_shape": "Mở rồi tròn môi.",
+        "warning": "Không đọc au."
+      },
+      {
+        "hanzi": "ou",
+        "name": "Vận mẫu ou",
+        "vietnamese_reading": "âu",
+        "mouth_shape": "Chu môi nhẹ.",
+        "warning": "Âm cuối ngắn."
+      },
+
+      {
+        "hanzi": "an",
+        "name": "Vận mẫu an",
+        "vietnamese_reading": "an",
+        "mouth_shape": "Miệng mở rộng.",
+        "warning": "Âm n nhẹ."
+      },
+      {
+        "hanzi": "en",
+        "name": "Vận mẫu en",
+        "vietnamese_reading": "ân",
+        "mouth_shape": "Miệng mở vừa.",
+        "warning": "Không đọc thành eng."
+      },
+      {
+        "hanzi": "ang",
+        "name": "Vận mẫu ang",
+        "vietnamese_reading": "ang",
+        "mouth_shape": "Mở rộng cổ họng.",
+        "warning": "Âm ng sâu."
+      },
+      {
+        "hanzi": "eng",
+        "name": "Vận mẫu eng",
+        "vietnamese_reading": "âng",
+        "mouth_shape": "Âm sâu cổ họng.",
+        "warning": "Không đọc thành en."
+      },
+
+      {
+        "hanzi": "er",
+        "name": "Vận mẫu er",
+        "vietnamese_reading": "ơr",
+        "mouth_shape": "Cong lưỡi nhẹ.",
+        "warning": "Âm đặc trưng tiếng Trung."
+      },
+
+      {
+        "hanzi": "ia",
+        "name": "Vận mẫu ia",
+        "vietnamese_reading": "ia",
+        "mouth_shape": "Kéo ngang rồi mở.",
+        "warning": "Đọc liền."
+      },
+      {
+        "hanzi": "ie",
+        "name": "Vận mẫu ie",
+        "vietnamese_reading": "iê",
+        "mouth_shape": "Kéo ngang môi.",
+        "warning": "Âm e ngắn."
+      },
+      {
+        "hanzi": "iao",
+        "name": "Vận mẫu iao",
+        "vietnamese_reading": "iao",
+        "mouth_shape": "Mở rồi tròn môi.",
+        "warning": "Đọc liền nhanh."
+      },
+      {
+        "hanzi": "iu",
+        "name": "Vận mẫu iu",
+        "vietnamese_reading": "iêu",
+        "mouth_shape": "Kéo ngang rồi chu môi.",
+        "warning": "Thực chất là iou."
+      },
+
+      {
+        "hanzi": "ian",
+        "name": "Vận mẫu ian",
+        "vietnamese_reading": "ien",
+        "mouth_shape": "Âm mũi nhẹ.",
+        "warning": "Không đọc quá nặng."
+      },
+      {
+        "hanzi": "in",
+        "name": "Vận mẫu in",
+        "vietnamese_reading": "in",
+        "mouth_shape": "Kéo ngang môi.",
+        "warning": "Âm n nhẹ."
+      },
+      {
+        "hanzi": "iang",
+        "name": "Vận mẫu iang",
+        "vietnamese_reading": "iang",
+        "mouth_shape": "Mở rộng.",
+        "warning": "Âm ng sâu."
+      },
+      {
+        "hanzi": "ing",
+        "name": "Vận mẫu ing",
+        "vietnamese_reading": "inh",
+        "mouth_shape": "Miệng kéo ngang.",
+        "warning": "Âm ng nhẹ cuối."
+      },
+
+      {
+        "hanzi": "ua",
+        "name": "Vận mẫu ua",
+        "vietnamese_reading": "ua",
+        "mouth_shape": "Chu môi rồi mở.",
+        "warning": "Đọc liền."
+      },
+      {
+        "hanzi": "uo",
+        "name": "Vận mẫu uo",
+        "vietnamese_reading": "uô",
+        "mouth_shape": "Chu môi rõ.",
+        "warning": "Âm o tròn."
+      },
+      {
+        "hanzi": "uai",
+        "name": "Vận mẫu uai",
+        "vietnamese_reading": "uai",
+        "mouth_shape": "Chu môi rồi mở.",
+        "warning": "Đọc liền."
+      },
+      {
+        "hanzi": "ui",
+        "name": "Vận mẫu ui",
+        "vietnamese_reading": "uây",
+        "mouth_shape": "Chu môi nhẹ.",
+        "warning": "Thực chất là uei."
+      },
+
+      {
+        "hanzi": "uan",
+        "name": "Vận mẫu uan",
+        "vietnamese_reading": "oan",
+        "mouth_shape": "Chu môi rồi mở.",
+        "warning": "Âm n nhẹ."
+      },
+      {
+        "hanzi": "un",
+        "name": "Vận mẫu un",
+        "vietnamese_reading": "uân",
+        "mouth_shape": "Chu môi.",
+        "warning": "Thực chất là uen."
+      },
+      {
+        "hanzi": "uang",
+        "name": "Vận mẫu uang",
+        "vietnamese_reading": "uang",
+        "mouth_shape": "Mở rộng cổ họng.",
+        "warning": "Âm ng sâu."
+      },
+      {
+        "hanzi": "ong",
+        "name": "Vận mẫu ong",
+        "vietnamese_reading": "ung",
+        "mouth_shape": "Chu môi nhẹ.",
+        "warning": "Âm ng cuối."
+      },
+
+      {
+        "hanzi": "üe",
+        "name": "Vận mẫu üe",
+        "vietnamese_reading": "uyê",
+        "mouth_shape": "Chu môi tròn.",
+        "warning": "Giữ môi tròn khi đọc."
+      },
+      {
+        "hanzi": "üan",
+        "name": "Vận mẫu üan",
+        "vietnamese_reading": "uyên",
+        "mouth_shape": "Chu môi rồi mở.",
+        "warning": "Giữ âm ü."
+      },
+      {
+        "hanzi": "ün",
+        "name": "Vận mẫu ün",
+        "vietnamese_reading": "uyn",
+        "mouth_shape": "Chu môi nhẹ.",
+        "warning": "Âm n nhẹ."
+      }
+    ]
+  }
+}

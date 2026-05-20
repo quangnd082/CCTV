@@ -1,0 +1,305 @@
+{
+  "app_info": {
+    "name": "Học Tiếng Trung Từ Con Số 0",
+    "version": "1.0.0",
+    "author": "Gia Sư Riêng 1-1",
+    "description": "Dữ liệu bài học dành cho người Việt học tiếng Trung từ đầu"
+  },
+  "lessons": [
+    {
+      "id": "L01",
+      "title": "Bài 1: Xin Chào! (你好)",
+      "stage": "Giai đoạn 1 – Làm Quen Với Tiếng Trung",
+      "vocabulary": [
+        {
+          "hanzi": "你好",
+          "pinyin": "nǐ hǎo",
+          "tone": "Thanh 3 ↘↗ + Thanh 3 ↘↗ (nhưng 你 đổi thành Thanh 2 ↗ khi đứng trước Thanh 3)",
+          "vietnamese_reading": "Nỉ hảo",
+          "meaning": "Xin chào / Chào bạn"
+        },
+        {
+          "hanzi": "你",
+          "pinyin": "nǐ",
+          "tone": "Thanh 3 ↘↗ (bình thường), đổi Thanh 2 khi đứng trước Thanh 3",
+          "vietnamese_reading": "Nỉ",
+          "meaning": "Bạn / Mày (ngôi thứ 2 số ít)"
+        },
+        {
+          "hanzi": "好",
+          "pinyin": "hǎo",
+          "tone": "Thanh 3 ↘↗",
+          "vietnamese_reading": "Hảo",
+          "meaning": "Tốt / Được / Ổn"
+        },
+        {
+          "hanzi": "我",
+          "pinyin": "wǒ",
+          "tone": "Thanh 3 ↘↗",
+          "vietnamese_reading": "Ủa (gần giống)",
+          "meaning": "Tôi / Tao (ngôi thứ 1 số ít)"
+        },
+        {
+          "hanzi": "谢谢",
+          "pinyin": "xiè xie",
+          "tone": "Thanh 4 ↘ + Thanh nhẹ (đọc nhạt, không nhấn)",
+          "vietnamese_reading": "Xiê xiê (đọc nhẹ tiếng sau)",
+          "meaning": "Cảm ơn"
+        },
+        {
+          "hanzi": "再见",
+          "pinyin": "zài jiàn",
+          "tone": "Thanh 4 ↘ + Thanh 4 ↘",
+          "vietnamese_reading": "Zài chiên",
+          "meaning": "Tạm biệt"
+        }
+      ],
+      "phonetic_analysis": "【Phân Tích Âm Từng Chữ】\n\n🔤 NǏ (你 - Bạn):\n• Phụ âm đầu: N → Giống 'n' trong tiếng Việt (âm mũi, lưỡi chạm chân răng trên)\n• Nguyên âm: I → Giống 'i' trong tiếng Việt nhưng môi KHÔNG tròn, kéo rộng sang hai bên\n• Thanh điệu: Thanh 3 → Đi xuống thấp rồi kéo lên (↘↗)\n\n🔤 HǍO (好 - Tốt):\n• Phụ âm đầu: H → KHÔNG giống 'h' tiếng Việt! Âm này xuất phát từ cổ họng, mạnh hơn, như đang thở hơi nóng lên gương\n• Nguyên âm kép: AO → Đầu tiên mở miệng to nói 'a', rồi từ từ đóng môi lại như nói 'o'\n• Thanh điệu: Thanh 3 → Xuống rồi lên\n\n🔤 QUY TẮC BIẾN ĐIỆU ĐẶC BIỆT (QUAN TRỌNG!):\n• Khi hai Thanh 3 đứng cạnh nhau → chữ ĐẦU TIÊN tự động đổi thành Thanh 2\n• NǏ HǍO → thực tế đọc: NÍ HǍO (chữ 你 đổi thành Thanh 2 ↗)\n• Đây là quy tắc tự nhiên, KHÔNG phải lỗi sai",
+
+      "mouth_shape": "【Hướng Dẫn Khẩu Hình Chi Tiết】\n\n👄 Âm N (trong 你 - nǐ):\n• Đặt đầu lưỡi CHẠM nhẹ vào chân của hàng răng trên\n• Hơi thoát qua MŨI (không phải miệng)\n• Thử bịt mũi lại → âm sẽ tắt hẳn = bạn đang làm đúng âm N!\n• Môi: Hé mở tự nhiên, không mím chặt\n\n👄 Âm H (trong 好 - hǎo):\n• KHÁC hoàn toàn với 'h' tiếng Việt\n• Gốc lưỡi nâng lên phía vòm mềm (cuối khoang miệng)\n• Hơi thoát ra từ CỔ HỌNG, tạo cảm giác cọ xát\n• Thử hà hơi lên lòng bàn tay = đúng cảm giác đó!\n\n👄 Nguyên âm ĀO (trong 好 - hǎo):\n• Bắt đầu: Mở miệng rộng, hàm dưới hạ xuống, nói 'A'\n• Kết thúc: Từ từ thu môi lại thành hình tròn nhỏ, chuyển sang 'O'\n• KHÔNG đột ngột – phải trượt dần dần từ A → O\n• Tiếng Việt gần giống: 'ao' trong 'con bào'\n\n👄 Nguyên âm I (trong 你 - nǐ):\n• Môi KÉO NGANG tối đa như đang nhe răng cười\n• KHÔNG tròn môi như 'i' trong 'i tờ'\n• Lưỡi bẹt, đầu lưỡi chạm chân răng dưới",
+
+      "vietnamese_errors": "【⚠️ Người Việt Hay Sai – Giáo Viên Cảnh Báo!】\n\n❌ Lỗi 1: Đọc 'hǎo' như 'hảo' trong tiếng Việt\n   Sai vì: Âm H tiếng Trung mạnh và xuất phát từ cổ họng, KHÁC hẳn H tiếng Việt\n   ✅ Đúng: Hà hơi mạnh từ cổ, nghe như có tiếng xước nhẹ\n\n❌ Lỗi 2: Đọc hai chữ 你好 với cùng một Thanh 3\n   Sai vì: Khi hai Thanh 3 liền nhau, chữ đầu PHẢI đổi thành Thanh 2\n   ✅ Đúng: NÍ hǎo (không phải NỈ hǎo)\n\n❌ Lỗi 3: Đọc 谢谢 (xiè xie) cả hai chữ đều nặng như nhau\n   Sai vì: Chữ 'xie' thứ hai là THANH NHẸ, đọc lướt qua, nhanh và nhạt\n   ✅ Đúng: XIÊEEE-xie (chữ sau nhạt hơn nhiều)\n\n❌ Lỗi 4: Đọc 我 (wǒ) như 'oa'\n   Sai vì: Âm 'W' trong tiếng Trung thực chất là âm 'U' (唇形圆), môi tròn hết cỡ rồi mở ra\n   ✅ Đúng: Môi tròn như thổi nến rồi mở ra nói 'oo-uh'",
+
+      "memory_tricks": "【🧠 Mẹo Ghi Nhớ Siêu Hài – Không Quên Được!】\n\n🎯 你好 (nǐ hǎo – Xin chào):\n• Tưởng tượng: Bạn gặp một người BẠN (你 = bạn) đang ăn HẢO HÁN (好 = tốt/ổn)\n• Câu nhớ: \"NỈ ơi, HẢOO, mày ổn không?\" → Nǐ hǎo!\n• Hoặc: Nghe như \"Nỉ Hảo\" = \"Này, Hào!\" (gọi tên người bạn tên Hào)\n\n🎯 谢谢 (xiè xie – Cảm ơn):\n• Nghe như: XIÊEEE xiê → Cứ tưởng tượng cảm ơn ai đó đã cho bạn ăn 'xiên que' (xiêxie!)\n• Câu nhớ: \"Ăn xiên que ngon quá, XIÊEEE XIÊEEE!\" = Cảm ơn!\n\n🎯 再见 (zài jiàn – Tạm biệt):\n• Nghe như: ZÀI CHIÊN → \"Zài = hẹn gặp LẠI, Jiàn = gặp\" → Hẹn gặp lại!\n• Câu nhớ: \"Tạm biệt nha, lần sau mình ZÀI CHIÊN (lại gặp) nhé!\"\n\n🎯 我 (wǒ – Tôi):\n• Hình dạng chữ: Nhìn như hình người đang CẦM GIÁO (戈) giơ lên, tự xưng 'ta đây!'\n• Câu nhớ: \"ÙA ơi, đó là TÔI đó!\" → Wǒ = Tôi",
+
+      "practical_examples": [
+        {
+          "hanzi": "你好！我是小明。",
+          "pinyin": "Nǐ hǎo! Wǒ shì Xiǎo Míng.",
+          "vietnamese": "Xin chào! Tôi là Tiểu Minh.",
+          "note": "Lưu ý: 是 (shì) = là/thì, thanh 4 đọc rất nặng xuống"
+        },
+        {
+          "hanzi": "你好吗？",
+          "pinyin": "Nǐ hǎo ma?",
+          "vietnamese": "Bạn có khỏe không?",
+          "note": "吗 (ma) = trợ từ hỏi, đọc thanh nhẹ, nhạt ở cuối câu"
+        },
+        {
+          "hanzi": "我很好，谢谢！",
+          "pinyin": "Wǒ hěn hǎo, xiè xie!",
+          "vietnamese": "Tôi rất khỏe, cảm ơn!",
+          "note": "很 (hěn) = rất, thanh 3. Chú ý: 我很好 = 3+3+3, các thanh 3 liên tiếp biến đổi phức tạp"
+        },
+        {
+          "hanzi": "再见！",
+          "pinyin": "Zài jiàn!",
+          "vietnamese": "Tạm biệt!",
+          "note": "Cả hai chữ đều Thanh 4, đọc dứt khoát, mạnh xuống"
+        },
+        {
+          "hanzi": "明天见！",
+          "pinyin": "Míng tiān jiàn!",
+          "vietnamese": "Hẹn gặp ngày mai!",
+          "note": "明天 (míngtiān) = ngày mai. Câu này thân mật hơn 再见"
+        }
+      ],
+      "reading_practice": {
+        "level1_slow": [
+          {"text": "你 — 好", "pinyin": "nǐ — hǎo", "note": "Đọc từng chữ, dừng 1 giây giữa hai chữ. Cảm nhận từng âm."},
+          {"text": "谢 — 谢", "pinyin": "xiè — xie", "note": "Chữ đầu nặng - Thanh 4, chữ sau nhạt - Thanh nhẹ"},
+          {"text": "再 — 见", "pinyin": "zài — jiàn", "note": "Hai chữ đều Thanh 4, đọc mạnh xuống"}
+        ],
+        "level2_tones": [
+          {"text": "Nǐ hǎo", "pinyin": "↗ ↘↗", "note": "Chú ý: 你 đổi thành Thanh 2 (lên) trước 好 Thanh 3 (xuống-lên)"},
+          {"text": "Wǒ hěn hǎo", "pinyin": "↘↗ ↘↗ ↘↗", "note": "Ba Thanh 3 liên tiếp: 2 chữ đầu đổi Thanh 2, chữ cuối giữ Thanh 3"},
+          {"text": "Xiè xie", "pinyin": "↘ (nhạt)", "note": "Cảm giác như phanh gấp: NẶNG rồi nhẹ lướt"}
+        ],
+        "level3_natural": [
+          {"text": "你好！你好吗？", "pinyin": "Nǐ hǎo! Nǐ hǎo ma?", "note": "Tốc độ giao tiếp thực, ngữ điệu tự nhiên như nói chuyện"},
+          {"text": "我很好，谢谢！再见！", "pinyin": "Wǒ hěn hǎo, xiè xie! Zài jiàn!", "note": "Cả đoạn hội thoại liền mạch, tự nhiên"}
+        ]
+      },
+      "mini_quiz": [
+        {
+          "question": "Khi đọc 你好 (nǐ hǎo), chữ 你 (nǐ) thay đổi thanh điệu như thế nào?",
+          "options": [
+            "A. Giữ nguyên Thanh 3",
+            "B. Đổi thành Thanh 1 (ngang bằng)",
+            "C. Đổi thành Thanh 2 (lên cao)",
+            "D. Đổi thành Thanh 4 (xuống mạnh)"
+          ],
+          "correct_answer": "C",
+          "explanation": "✅ Đáp án C là ĐÚNG!\n\n📚 Giải thích của giáo viên:\nĐây là quy tắc BIẾN ĐIỆU 3→2 (三声变调): Khi Thanh 3 đứng ngay trước một Thanh 3 khác, chữ đầu tiên tự động đổi thành Thanh 2.\n\nVì sao vậy? Vì người bản ngữ thấy đọc 2 Thanh 3 liên tiếp rất mệt miệng và khó nghe (cả hai đều phải xuống thấp rồi lên cao). Vì vậy họ 'rút gọn' bằng cách đọc chữ đầu lên thẳng (Thanh 2), rồi chữ sau mới xuống-lên (Thanh 3).\n\n🎯 Nhớ mãi: NÍ hǎo (không phải NỈ hǎo)"
+        },
+        {
+          "question": "Âm H trong 好 (hǎo) khác âm H trong tiếng Việt như thế nào?",
+          "options": [
+            "A. Hoàn toàn giống nhau, không có gì khác",
+            "B. H tiếng Trung xuất phát từ cổ họng, mạnh hơn, có tiếng xước",
+            "C. H tiếng Trung không thở hơi, đọc nhẹ hơn",
+            "D. H tiếng Trung không tồn tại, đọc luôn thành 'kh'"
+          ],
+          "correct_answer": "B",
+          "explanation": "✅ Đáp án B là ĐÚNG!\n\n📚 Giải thích của giáo viên:\nÂm H (h-) trong tiếng Trung là phụ âm CỔ HỌNG (velar fricative), ký hiệu IPA là [x]. Khác hẳn với H tiếng Việt chỉ là tiếng thở nhẹ.\n\n🔬 Cách kiểm tra:\n• Hà hơi lên lòng bàn tay → Nghe có tiếng gió cọ xát\n• Gốc lưỡi chạm nhẹ vào vòm mềm phía sau\n• Giống như âm 'kh' trong 'không' nhưng nhẹ hơn một chút\n\n🎯 Mẹo: Tưởng tượng bạn đang làm hơi nóng lên gương để lau → Đó là âm H đúng của tiếng Trung!"
+        },
+        {
+          "question": "谢谢 (xiè xie) được đọc như thế nào cho đúng?",
+          "options": [
+            "A. Xiê-Xiê (hai chữ đều nặng như nhau)",
+            "B. XIÊEEE-xie (chữ đầu Thanh 4 nặng, chữ sau thanh nhẹ lướt qua)",
+            "C. xiê-XIÊEEE (chữ sau nặng hơn chữ đầu)",
+            "D. Xiê xiê (hai chữ đều Thanh 1 ngang bằng)"
+          ],
+          "correct_answer": "B",
+          "explanation": "✅ Đáp án B là ĐÚNG!\n\n📚 Giải thích của giáo viên:\n谢谢 có cấu trúc: Thanh 4 + Thanh nhẹ\n\n• Chữ 谢 đầu tiên: Thanh 4 → ↘ Đọc NẶNG, đi thẳng xuống dứt khoát\n• Chữ 谢 thứ hai: Thanh nhẹ (轻声) → Đọc nhạt, ngắn, không nhấn\n\nĐây là hiện tượng rất phổ biến trong tiếng Trung: Từ láy (như 谢谢, 看看, 走走...) thường có chữ thứ 2 đọc Thanh nhẹ.\n\n🎯 Nghe thử: XIÊEEE-xie → Nặng rồi lướt, như phanh gấp trên đường!"
+        },
+        {
+          "question": "Câu 你好吗 (nǐ hǎo ma) có nghĩa là gì?",
+          "options": [
+            "A. Xin chào bạn!",
+            "B. Tôi rất khỏe",
+            "C. Bạn có khỏe không?",
+            "D. Tạm biệt bạn"
+          ],
+          "correct_answer": "C",
+          "explanation": "✅ Đáp án C là ĐÚNG!\n\n📚 Giải thích của giáo viên:\n你好吗 = 你(bạn) + 好(khỏe/tốt) + 吗(trợ từ hỏi)\n\n• 吗 (ma) là TRỢ TỪ HỎI YES/NO đặc trưng của tiếng Trung\n• Chỉ cần thêm 吗 vào cuối câu khẳng định → thành câu hỏi\n• 吗 đọc Thanh nhẹ, lướt nhẹ ở cuối, không nhấn\n\n🎯 Câu trả lời thường dùng:\n• 我很好！(Wǒ hěn hǎo) = Tôi rất khỏe!\n• 还好 (Hái hǎo) = Bình thường thôi\n• 不太好 (Bù tài hǎo) = Không được tốt lắm"
+        }
+      ]
+    },
+    {
+      "id": "L02",
+      "title": "Bài 2: Bạn Tên Gì? (你叫什么名字?)",
+      "stage": "Giai đoạn 1 – Làm Quen Với Tiếng Trung",
+      "vocabulary": [
+        {
+          "hanzi": "叫",
+          "pinyin": "jiào",
+          "tone": "Thanh 4 ↘",
+          "vietnamese_reading": "Jiào (đọc như 'Jiêu' nặng xuống)",
+          "meaning": "Được gọi là / Tên là / Gọi"
+        },
+        {
+          "hanzi": "什么",
+          "pinyin": "shén me",
+          "tone": "Thanh 2 ↗ + Thanh nhẹ",
+          "vietnamese_reading": "Sến mơ",
+          "meaning": "Cái gì / Gì"
+        },
+        {
+          "hanzi": "名字",
+          "pinyin": "míng zi",
+          "tone": "Thanh 2 ↗ + Thanh nhẹ",
+          "vietnamese_reading": "Míng zử",
+          "meaning": "Tên / Họ và tên"
+        },
+        {
+          "hanzi": "是",
+          "pinyin": "shì",
+          "tone": "Thanh 4 ↘",
+          "vietnamese_reading": "Shì (như 'si' nặng)",
+          "meaning": "Là / Thì"
+        },
+        {
+          "hanzi": "不",
+          "pinyin": "bù",
+          "tone": "Thanh 4 ↘ (đổi Thanh 2 trước Thanh 4 khác)",
+          "vietnamese_reading": "Bù (nặng xuống)",
+          "meaning": "Không (phủ định)"
+        },
+        {
+          "hanzi": "中国人",
+          "pinyin": "Zhōng guó rén",
+          "tone": "Thanh 1 — + Thanh 2 ↗ + Thanh 2 ↗",
+          "vietnamese_reading": "Chung guó rén",
+          "meaning": "Người Trung Quốc"
+        },
+        {
+          "hanzi": "越南人",
+          "pinyin": "Yuè nán rén",
+          "tone": "Thanh 4 ↘ + Thanh 2 ↗ + Thanh 2 ↗",
+          "vietnamese_reading": "Duê nán rén",
+          "meaning": "Người Việt Nam"
+        }
+      ],
+      "phonetic_analysis": "【Phân Tích Âm Từng Chữ】\n\n🔤 JIÀO (叫 - Tên là):\n• Phụ âm J: Âm này KHÔNG có trong tiếng Việt! Lưỡi đặt sát vòm cứng (ngay sau răng cửa trên), hơi mạnh, nghe như 'gi' nhưng KHÔNG rung lưỡi\n• Nguyên âm IAO: I → A → O trượt liên tiếp, môi từ kéo rộng → mở → tròn\n• Thanh 4: Rơi thẳng xuống như đá rơi\n\n🔤 SHÉN (什 - Gì/Cái gì):\n• Phụ âm SH: Cong lưỡi ra sau! Đầu lưỡi cong lên chạm vào vòm cứng, hơi thoát ra hai bên\n• Đây là âm CUỘN LƯỠI (卷舌音 juǎn shé yīn) - điểm khó nhất với người Việt\n• Nguyên âm ÉN: E mở rồi đóng về N ở cuối\n\n🔤 BÙ (不 - Không):\n• Phụ âm B: Như 'b' tiếng Việt NHƯNG không bật hơi\n• QUY TẮC BIẾN ĐIỆU: 不 bình thường là Thanh 4. Nhưng khi đứng trước Thanh 4 khác → đổi thành Thanh 2\n• Ví dụ: 不是 = bù shì → thực đọc BÚ shì",
+
+      "mouth_shape": "【Hướng Dẫn Khẩu Hình Chi Tiết】\n\n👄 Âm J (trong 叫 - jiào):\n• Lưỡi: Mặt lưỡi (không phải đầu) chạm vào vòm cứng phía sau răng trên\n• Hơi: Bật ra kèm tiếng xít (affricate)\n• Môi: Kéo ngang, không tròn\n• Khác với CH: CH cong lưỡi ra sau hơn, J để lưỡi phẳng hơn\n\n👄 Âm SH (trong 什 - shén):\n• ĐÂY LÀ ÂM KHÓ NHẤT VỚI NGƯỜI VIỆT!\n• Đầu lưỡi: Cong lên cao, chạm vào vòm cứng (không phải răng)\n• Tưởng tượng như lưỡi đang 'cuộn về phía sau'\n• Thử: Nói 'sh' trong tiếng Anh (shoe/she) → Gần đúng rồi!\n• Người Việt hay nói S thay SH → Sai hoàn toàn về vị trí lưỡi\n\n👄 Âm R (trong 人 - rén):\n• Cũng là âm cuộn lưỡi! Lưỡi cong như SH nhưng rung thêm\n• Nghe như 'r' tiếng Pháp hoặc 'r' trong 'garage' tiếng Anh\n• Người Việt hay đọc thành 'z' hoặc 'd' → Không đúng",
+
+      "vietnamese_errors": "【⚠️ Người Việt Hay Sai – Giáo Viên Cảnh Báo!】\n\n❌ Lỗi 1: Đọc SH như S\n   Sai vì: S lưỡi phẳng, SH lưỡi cuộn ra sau - hai âm hoàn toàn khác\n   ✅ Đúng: Cong đầu lưỡi ra phía sau trước khi phát âm\n\n❌ Lỗi 2: Đọc J như GI trong tiếng Việt\n   Sai vì: GI tiếng Việt là âm tiếng, J tiếng Trung là âm bật (affricate)\n   ✅ Đúng: J tiếng Trung nghe gần như 'gi' nhưng có tiếng xít hơi\n\n❌ Lỗi 3: Quên biến điệu của 不\n   Sai: 不是 đọc 'bù shì' (4+4)\n   ✅ Đúng: 不是 đọc 'bú shì' (2+4) vì 不 gặp Thanh 4 → đổi Thanh 2\n\n❌ Lỗi 4: Đọc 什么 (shén me) cả hai chữ đều nặng\n   Sai: Shén-MÉ\n   ✅ Đúng: SHÉN-me (chữ sau thanh nhẹ, lướt qua)",
+
+      "memory_tricks": "【🧠 Mẹo Ghi Nhớ Siêu Hài – Không Quên Được!】\n\n🎯 叫 (jiào – Tên là):\n• Chữ này có miệng (口) ở bên trái, bên phải là dấu 'cào' xuống\n• Nhớ: 'CÁI MIỆNG ĐÓ JIÀO (kêu/gọi) TÊN bạn ra!'\n\n🎯 什么 (shén me – Cái gì):\n• Nghe như 'Sến Mơ' → Tưởng tượng cô gái SẾN đang MƠ = không biết đó là cái GÌ!\n• Câu nhớ: 'Cô SẾN đang MƠ là cái GÌ thế?' → Shén me!\n\n🎯 不 (bù – Không):\n• Chữ này nhìn như cái ô/dù ngược → PHỦ NHẬN, CHẶN lại\n• Tưởng tượng: Cái ô lộn ngược chặn mọi thứ lại = KHÔNG cho qua!\n\n🎯 是 (shì – Là):\n• Đọc như 'si' nặng. Câu nhớ: 'Cái đó SÌ (là) cái đó!' = Khẳng định!\n• Chữ 是 có chân là 'ngày/日' → Mặt trời MỌC = Đúng/Là thật!",
+
+      "practical_examples": [
+        {
+          "hanzi": "你叫什么名字？",
+          "pinyin": "Nǐ jiào shén me míng zi?",
+          "vietnamese": "Bạn tên gì?",
+          "note": "Câu hỏi tên phổ biến nhất. 什么 (shénme) = gì, 名字 (míngzi) = tên"
+        },
+        {
+          "hanzi": "我叫阮文明。",
+          "pinyin": "Wǒ jiào Nguyễn Văn Minh.",
+          "vietnamese": "Tôi tên là Nguyễn Văn Minh.",
+          "note": "Thay tên bằng tên của bạn khi giới thiệu bản thân"
+        },
+        {
+          "hanzi": "你是越南人吗？",
+          "pinyin": "Nǐ shì Yuènán rén ma?",
+          "vietnamese": "Bạn có phải người Việt Nam không?",
+          "note": "吗 ở cuối = câu hỏi Yes/No. 越南人 = người Việt Nam"
+        },
+        {
+          "hanzi": "是的，我是越南人。",
+          "pinyin": "Shì de, wǒ shì Yuènán rén.",
+          "vietnamese": "Đúng vậy, tôi là người Việt Nam.",
+          "note": "是的 (shì de) = đúng vậy/phải. Câu khẳng định hoàn chỉnh"
+        },
+        {
+          "hanzi": "不，我不是中国人。",
+          "pinyin": "Bù, wǒ bú shì Zhōngguó rén.",
+          "vietnamese": "Không, tôi không phải người Trung Quốc.",
+          "note": "Chú ý: 不是 → bú shì (biến điệu: 不 đổi Thanh 2 trước Thanh 4 的 是)"
+        }
+      ],
+      "reading_practice": {
+        "level1_slow": [
+          {"text": "你 — 叫 — 什么 — 名字", "pinyin": "nǐ — jiào — shén me — míng zi", "note": "Đọc từng phần, dừng lại để cảm nhận từng âm"},
+          {"text": "我 — 叫 — [Tên bạn]", "pinyin": "wǒ — jiào — [tên của bạn]", "note": "Thực hành với tên của chính mình"}
+        ],
+        "level2_tones": [
+          {"text": "Nǐ jiào shénme míngzi?", "pinyin": "↗ ↘ ↗(nhẹ) ↗(nhẹ)", "note": "Chú ý: jiào = Thanh 4 nặng; shénme = 2+nhẹ; míngzi = 2+nhẹ"},
+          {"text": "Wǒ bú shì Zhōngguó rén", "pinyin": "↘↗ ↗ ↘ — ↗ ↗", "note": "不是 → bú shì: biến điệu 4→2"}
+        ],
+        "level3_natural": [
+          {"text": "你叫什么名字？我叫...，我是越南人。", "pinyin": "Nǐ jiào shénme míngzi? Wǒ jiào..., wǒ shì Yuènán rén.", "note": "Đoạn hội thoại tự giới thiệu hoàn chỉnh tốc độ tự nhiên"}
+        ]
+      },
+      "mini_quiz": [
+        {
+          "question": "Câu 你叫什么名字 (nǐ jiào shén me míng zi) có nghĩa là gì?",
+          "options": [
+            "A. Bạn có khỏe không?",
+            "B. Bạn tên gì?",
+            "C. Bạn là người nước nào?",
+            "D. Bạn bao nhiêu tuổi?"
+          ],
+          "correct_answer": "B",
+          "explanation": "✅ Đáp án B là ĐÚNG!\n\n📚 Phân tích từng chữ:\n• 你 (nǐ) = bạn\n• 叫 (jiào) = được gọi là / tên là\n• 什么 (shén me) = gì / cái gì\n• 名字 (míng zi) = tên\n\n→ Bạn + tên là + gì + tên = 'Bạn tên gì?'\n\n🎯 Cách trả lời: 我叫... (Wǒ jiào...) = Tôi tên là..."
+        },
+        {
+          "question": "Khi đọc 不是 (bù shì), thanh điệu của 不 thay đổi thế nào?",
+          "options": [
+            "A. Giữ nguyên Thanh 4",
+            "B. Đổi thành Thanh 3",
+            "C. Đổi thành Thanh 2",
+            "D. Đọc Thanh nhẹ"
+          ],
+          "correct_answer": "C",
+          "explanation": "✅ Đáp án C là ĐÚNG!\n\n📚 Quy tắc biến điệu của 不 (bù):\n不 bình thường là Thanh 4. Nhưng khi đứng trước một chữ Thanh 4 khác → 不 đổi thành Thanh 2.\n\n不是 = bù + shì (Thanh 4 + Thanh 4)\n→ Thực đọc: bú shì (Thanh 2 + Thanh 4)\n\n🎯 Câu mẹo: '不 ghét Thanh 4 đứng sau nó → phải đổi lên Thanh 2 cho khác!'"
+        },
+        {
+          "question": "Điểm khác biệt giữa âm SH và S trong tiếng Trung là gì?",
+          "options": [
+            "A. SH đọc to hơn S",
+            "B. SH cong lưỡi ra sau, S lưỡi phẳng – vị trí lưỡi khác nhau",
+            "C. SH và S giống nhau, chỉ khác tốc độ",
+            "D. S đọc nặng hơn SH"
+          ],
+          "correct_answer": "B",
+          "explanation": "✅ Đáp án B là ĐÚNG!\n\n📚 Sự khác biệt quan trọng:\n• S (sī): Lưỡi PHẲNG, đầu lưỡi chạm sau răng dưới, hơi thoát ở phía trước\n• SH (shī): Lưỡi CUỘN ngược ra phía sau, đầu lưỡi cong lên chạm vào vòm cứng\n\nĐây là 2 âm HOÀN TOÀN KHÁC NHAU trong tiếng Trung:\n• 四 (sì) = số bốn ≠ 是 (shì) = là\n• 说 (shuō) = nói ≠ 所 (suǒ) = nơi chỗ\n\n🎯 Người Việt Nam cực kỳ hay mắc lỗi này vì tiếng Việt không có âm cuộn lưỡi!"
+        }
+      ]
+    }
+  ]
+}

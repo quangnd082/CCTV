@@ -1,362 +1,267 @@
-# EHS CCTV Monitoring
+# EHS CCTV Monitoring — Hướng dẫn sử dụng
 
-Ứng dụng giám sát an toàn lao động (EHS) trên nhiều camera đồng thời. Hệ thống đọc luồng video (RTSP, file, USB), chạy phát hiện đối tượng bằng YOLO trên GPU/CPU, và hiển thị cảnh báo trực tiếp trên giao diện PyQt5.
+Ứng dụng giám sát an toàn lao động (EHS): xem nhiều camera, phát hiện vi phạm bằng AI (YOLO), hiển thị cảnh báo và lưu ảnh sự cố.
 
-Thiết kế tối ưu cho **4–6 camera** chạy ổn định 24/7: một engine YOLO dùng chung, capture RTSP qua FFmpeg, throttle FPS từng camera để tránh quá tải GPU.
+**Phiên bản khuyến nghị:** chạy từ thư mục `ver2/` (giao diện tab Monitor + Settings, lưu cấu hình hiển thị trong `settings.json`).
 
 ---
 
 ## Mục lục
 
-1. [Tính năng](#tính-năng)
-2. [Kiến trúc](#kiến-trúc)
-3. [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-4. [Yêu cầu & cài đặt](#yêu-cầu--cài-đặt)
-5. [Chạy ứng dụng](#chạy-ứng-dụng)
-6. [Cấu hình](#cấu-hình)
-7. [Luồng xử lý](#luồng-xử-lý)
-8. [Tuning hiệu năng](#tuning-hiệu-năng)
-9. [Cài đặt FFmpeg](#cài-đặt-ffmpeg)
-10. [Log & ảnh cảnh báo](#log--ảnh-cảnh-báo)
-11. [Xử lý sự cố](#xử-lý-sự-cố)
+1. [Cài đặt](#cài-đặt)
+2. [Chạy ứng dụng lần đầu](#chạy-ứng-dụng-lần-đầu)
+3. [Giao diện](#giao-diện)
+4. [Tab Monitor](#tab-monitor)
+5. [Tab Settings](#tab-settings)
+6. [Hai file cấu hình](#hai-file-cấu-hình)
+7. [Cấu hình camera (`config_data.json`)](#cấu-hình-camera-config_datajson)
+8. [Cài đặt vận hành (`settings.json`)](#cài-đặt-vận-hành-settingsjson)
+9. [Ảnh cảnh báo & panel log](#ảnh-cảnh-báo--panel-log)
+10. [Cài FFmpeg (RTSP)](#cài-ffmpeg-rtsp)
+11. [Xử lý sự cố thường gặp](#xử-lý-sự-cố-thường-gặp)
 
 ---
 
-## Tính năng
+## Cài đặt
 
-- Giám sát **nhiều camera** trên một màn hình (grid tự động theo số camera bật).
-- Phát hiện vi phạm EHS: **không đội mũ (helmet)**, **ngã (fell)**, **không mặc áo (jacket)** — bật/tắt theo từng camera.
-- Nguồn video: **RTSP**, file video, hoặc chỉ số camera USB.
-- RTSP ổn định qua **FFmpeg** (TCP, auto-reconnect, backoff).
-- **Một model YOLO** dùng chung cho tất cả camera (cache theo đường dẫn weight).
-- Batch inference tối đa 4 frame/lần khi các camera dùng cùng cấu hình model.
-- Overlay **WARNING** trên tile camera, lưu ảnh vi phạm vào thư mục `LastDetectionWarning/`.
-- Panel xem lại ảnh cảnh báo (cấu hình qua `config_data_log.json`).
-
----
-
-## Kiến trúc
-
-```mermaid
-flowchart TB
-  subgraph config [Cấu hình]
-    CD[config_data.json]
-    CL[config_data_log.json]
-  end
-
-  subgraph app [Ứng dụng PyQt5]
-    P[Program.py]
-    MW[MainWindow]
-    CW[CameraWidget × N]
-    LW[LogWidget + ImageListWidget]
-  end
-
-  subgraph capture [Capture — mỗi camera]
-    VC[VideoCapture]
-    FF[FFmpegCapture]
-    CV[OpenCV fallback]
-  end
-
-  subgraph infer [Inference — dùng chung]
-    YE[YoloEngine]
-    Q[Queue maxsize=16]
-    W[Worker thread]
-    B[Batch predict ≤4]
-  end
-
-  CD --> P --> MW
-  CL --> MW
-  MW --> CW
-  MW --> LW
-  CW --> VC
-  VC --> FF
-  VC --> CV
-  CW -->|throttle ~6 FPS| YE
-  YE --> Q --> W --> B
-  B -->|result_ready| CW
-  B --> DISK[LastDetectionWarning/]
-```
-
-| Thành phần | File | Vai trò |
-|------------|------|---------|
-| Entry point | `Program.py` | Khởi tạo UI, load config, tạo grid camera |
-| Widget camera | `CameraWidget.py` | Capture frame, gửi YOLO, hiển thị kết quả |
-| Engine YOLO | `yolo_engine.py` | Cache model, queue job, batch predict, emit kết quả |
-| Capture RTSP | `ffmpeg_capture.py` | Đọc RTSP qua subprocess FFmpeg |
-| Cấu hình | `config_data.py` | Parse `config_data.json` |
-| Log | `Logging.py` | Ghi log ứng dụng |
-
-**Điểm khác so với kiến trúc cũ:** mỗi camera không còn load riêng một model YOLO và không còn QThread inference riêng. Toàn bộ inference đi qua `YoloEngine` — giảm VRAM và tránh chia nhỏ GPU context.
-
----
-
-## Cấu trúc thư mục
-
-```
-CCTV/
-├── Program.py              # Chạy ứng dụng
-├── CameraWidget.py         # UI + capture từng camera
-├── yolo_engine.py          # YOLO engine dùng chung
-├── ffmpeg_capture.py       # RTSP capture qua FFmpeg
-├── config_data.json        # Cấu hình camera chính
-├── config_data_log.json    # Cấu hình panel log/ảnh cảnh báo
-├── config_data.py          # Loader config
-├── display_image.py        # Widget xem ảnh log
-├── list_widget.py          # Danh sách ảnh cảnh báo
-├── Logging.py              # Logger
-├── scale_test_helper.py    # Helper test nhiều camera (tùy chọn)
-├── yolo_training.py        # Huấn luyện model (tùy chọn)
-├── data.yaml               # Dataset YOLO (tùy chọn)
-├── LastDetectionWarning/   # Ảnh vi phạm (tự tạo khi chạy)
-├── CodeTest/               # Script thử nghiệm (không dùng production)
-└── Code_base_not_log/      # Bản backup cũ (tham khảo)
-```
-
----
-
-## Yêu cầu & cài đặt
-
-### Phần mềm
+### Yêu cầu
 
 | Thành phần | Ghi chú |
 |------------|---------|
+| Windows 10/11 | |
 | Python 3.9+ | Khuyến nghị 3.10 hoặc 3.11 |
-| PyQt5 | Giao diện |
-| OpenCV (`cv2`) | Đọc frame, ghi ảnh |
-| Ultralytics | YOLO inference |
-| PyTorch | GPU (CUDA) hoặc CPU |
-| FFmpeg | **Khuyến nghị** cho RTSP 24/7 — phải có trong `PATH` |
-| `unidecode` | Tên file an toàn trên Windows |
+| PyQt5, OpenCV, Ultralytics, PyTorch | Xem lệnh cài bên dưới |
+| FFmpeg | **Bắt buộc nếu dùng RTSP** — phải có trong PATH |
+| File model `.pt` | Ví dụ `yolo11n.pt` đặt trong `ver2/` |
 
-### Cài dependency (ví dụ)
+### Cài thư viện Python
 
 ```powershell
 pip install PyQt5 opencv-python ultralytics torch unidecode pillow
 ```
 
-Nếu dùng GPU NVIDIA, cài PyTorch bản CUDA phù hợp từ [pytorch.org](https://pytorch.org/).
+GPU NVIDIA: cài PyTorch bản CUDA từ [pytorch.org](https://pytorch.org/).
 
-### File model
-
-Đặt file weight (ví dụ `yolo11n.pt`) trong thư mục project hoặc chỉ đường dẫn đầy đủ trong `config_data.json` → `yolo_model_path`.
-
----
-
-## Chạy ứng dụng
-
-```powershell
-cd D:\2025\CCTV
-python Program.py
-```
-
-Trước khi chạy:
-
-1. Chỉnh `config_data.json` (nguồn camera, model, rule cảnh báo).
-2. Đảm bảo `ffmpeg -version` chạy được nếu dùng RTSP.
-3. Với file video test, dùng đường dẫn tuyệt đối hoặc tương đối hợp lệ trong `camera_src`.
-
----
-
-## Cấu hình
-
-### `config_data.json` — camera giám sát
-
-Mỗi phần tử trong `camera_infos` mô tả một camera:
-
-| Trường | Kiểu | Mô tả |
-|--------|------|--------|
-| `camera_name` | string | Tên hiển thị trên UI |
-| `camera_src` | string / int | RTSP URL, đường dẫn file, hoặc index USB (`0`, `1`, …) |
-| `img_size` | int | Kích thước input YOLO (thường `640`) |
-| `yolo_model_path` | string | Đường dẫn file `.pt` |
-| `yolo_rate` | float | Ngưỡng confidence (0.0–1.0) |
-| `classes` | array | Tên class (hiển thị trên label box) |
-| `colors` | array | Màu box: `[R,G,B]` hoặc `"#RRGGBB"` |
-| `roi_check` | `[x1, x2, y1, y2]` | Vùng quan tâm; box ngoài ROI bị bỏ qua |
-| `enable_flags` | object | Bật/tắt camera và rule detect |
-| `timer_delay` | int | Delay panel log (ms) |
-
-**`enable_flags`:**
-
-| Cờ | Giá trị | Ý nghĩa |
-|----|---------|---------|
-| `use_camera` | `1` / `0` | Hiển thị và xử lý camera này |
-| `helmet` | `1` / `0` | Cảnh báo không đội mũ |
-| `fell` | `1` / `0` | Cảnh báo ngã |
-| `jacket` | `1` / `0` | Cảnh báo không mặc áo |
-| `fire` | `1` / `0` | (dự phòng) |
-| `smoke` | `1` / `0` | (dự phòng) |
-
-**Class ID trong model** (hardcode trong `yolo_engine.py` — phải khớp model đã train):
-
-| Rule | Class index (`cls`) |
-|------|---------------------|
-| Helmet | `5` |
-| Jacket | `8` |
-| Fell | `9` |
-
-Nếu đổi model hoặc dataset, cần cập nhật các index này trong `yolo_engine.py` cho đúng `model.names`.
-
-**Ví dụ cấu hình một camera:**
-
-```json
-{
-  "roi_check": [-1, 9999, -1, 9999],
-  "camera_name": "CCTV 01",
-  "camera_src": "rtsp://user:pass@192.168.1.100/stream1",
-  "img_size": 640,
-  "yolo_model_path": "yolo11n.pt",
-  "yolo_rate": 0.5,
-  "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
-  "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000",
-             "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-  "enable_flags": {
-    "use_camera": 1,
-    "fell": 1,
-    "helmet": 1,
-    "jacket": 0,
-    "fire": 0,
-    "smoke": 0
-  },
-  "timer_delay": 100
-}
-```
-
-`roi_check = [-1, 9999, -1, 9999]` nghĩa là không giới hạn ROI (toàn khung hình).
-
-### `config_data_log.json` — panel ảnh cảnh báo
-
-Cấu hình widget bên phải: xem ảnh mới nhất và danh sách file trong `directory` (mặc định `./LastDetectionWarning/`).
-
----
-
-## Luồng xử lý
-
-### 1. Khởi động
-
-`Program.py` → `MainWindow` đọc `config_data.json` → lọc camera có `enable_flags.use_camera == 1` → tạo grid `CameraWidget` (số cột ≈ `ceil(sqrt(n))`).
-
-### 2. Capture (mỗi camera)
-
-- `CameraWidget` tạo `VideoCapture` trong thread nền.
-- **RTSP + có FFmpeg trong PATH** → `FFmpegCapture`: TCP, timeout, auto-restart, queue `maxsize=1` (chỉ giữ frame mới nhất).
-- **Ngược lại** → OpenCV `cv2.VideoCapture` + reconnect exponential backoff.
-- UI hiển thị trạng thái **LIVE** / **NO SIGNAL** (timeout 30 giây không có frame).
-
-### 3. Gửi frame sang YOLO
-
-- `QTimer` ~30 ms đọc frame từ queue capture.
-- Chỉ gửi inference khi:
-  - Không có job đang chờ (`_infer_in_flight == False`), và
-  - Đã qua khoảng `_infer_interval` (mặc định `_target_fps = 6.0` → ~6 lần/giây/camera).
-
-### 4. YoloEngine (dùng chung)
-
-- Job vào queue (`maxsize=16`); queue đầy → **drop frame cũ**, ưu tiên frame mới.
-- Worker gom batch tối đa **4** job cùng `model_path`, `img_size`, `yolo_rate`.
-- Model load **một lần** theo path; CUDA + half precision nếu có GPU.
-- Lọc box theo ROI, confidence, và `enable_flags`.
-- Box vi phạm: viền đỏ + khung cảnh báo; lưu ảnh tối đa 1 lần / 5 giây / camera.
-- Emit `result_ready(camera_name, QImage, is_warning, meta)`.
-
-### 5. Hiển thị UI
-
-- `CameraWidget` lọc signal theo `camera_name`.
-- Scale ảnh `KeepAspectRatio` + `SmoothTransformation`.
-- Overlay **WARNING** có cooldown 10 phút giữa các lần hiện (tránh nhấp nháy liên tục).
-
----
-
-## Tuning hiệu năng
-
-Khuyến nghị cho **4–6 camera RTSP** chạy 24/7:
-
-### 1. Tần số inference mỗi camera
-
-| File | Biến | Mặc định | Gợi ý |
-|------|------|----------|--------|
-| `CameraWidget.py` | `_target_fps` | `6.0` | 4 cam: `8–10`; 6 cam: `6–8` |
-
-Tăng → mượt hơn, GPU nặng hơn. Giảm → bền hơn, ít drop frame.
-
-### 2. Kích thước input YOLO
-
-| File | Trường | Gợi ý |
-|------|--------|--------|
-| `config_data.json` | `img_size` | `640` cân bằng; `512` nhẹ hơn |
-
-### 3. Ngưỡng confidence
-
-| File | Trường | Gợi ý |
-|------|--------|--------|
-| `config_data.json` | `yolo_rate` | `0.5–0.6` cân bằng; `0.6–0.7` ít false-positive |
-
-### 4. Batch inference
-
-| File | Biến | Mặc định | Gợi ý |
-|------|------|----------|--------|
-| `yolo_engine.py` | `_batch_size` | `4` | Throughput: `4`; latency thấp: `2–3` |
-
-### 5. Queue inference
-
-| File | Biến | Mặc định | Nguyên tắc |
-|------|------|----------|------------|
-| `yolo_engine.py` | `Queue(maxsize=…)` | `16` | Nhỏ → latency thấp khi quá tải; lớn → chịu spike nhưng dễ trễ |
-
-### 6. Capture RTSP
-
-| File | Tham số | Ý nghĩa |
-|------|---------|---------|
-| `ffmpeg_capture.py` | `open_timeout_sec`, `read_timeout_sec` | Timeout mở/đọc stream |
-| `ffmpeg_capture.py` | `reconnect_delay_sec`, `reconnect_delay_max_sec` | Backoff khi reconnect |
-| `ffmpeg_capture.py` | `_stall_timeout_sec` | Restart khi stream “đơ” |
-
-Camera hay rớt: tăng nhẹ `read_timeout_sec` / `stall_timeout_sec` (8–10s), giữ `rtsp_transport=tcp`.
-
-### Test nhiều camera (tùy chọn)
-
-```python
-# Trong script test hoặc REPL sau khi tạo MainWindow
-from scale_test_helper import log_multi_camera_status
-from Logging import Logger
-
-logger = Logger("SCALE-TEST")
-# Chạy ở thread phụ để không block UI
-import threading
-threading.Thread(
-    target=log_multi_camera_status,
-    args=(window, logger),
-    kwargs={"interval_sec": 5, "duration_sec": 120},
-    daemon=True,
-).start()
-```
-
----
-
-## Cài đặt FFmpeg
-
-Ứng dụng **tự dùng FFmpegCapture** khi `camera_src` là RTSP và lệnh `ffmpeg` có trong PATH. Không có FFmpeg → fallback OpenCV (kém ổn định hơn với RTSP dài hạn).
-
-### Cách 1: winget (nhanh)
-
-```powershell
-winget install --id Gyan.FFmpeg
-```
-
-Đóng và mở lại terminal, kiểm tra:
+### Kiểm tra FFmpeg
 
 ```powershell
 ffmpeg -version
 ```
 
-### Cách 2: Tải thủ công
+Nếu lỗi “không tìm thấy lệnh”, xem [Cài FFmpeg](#cài-ffmpeg-rtsp).
 
-1. Tải bản Windows từ [gyan.dev/ffmpeg/builds](https://www.gyan.dev/ffmpeg/builds/) (bản *essentials* là đủ).
-2. Giải nén, ví dụ `C:\ffmpeg\bin\ffmpeg.exe`.
-3. Thêm `C:\ffmpeg\bin` vào **Environment Variables → Path**.
-4. Mở terminal mới và chạy `ffmpeg -version`.
+---
 
-### Kiểm tra RTSP
+## Chạy ứng dụng lần đầu
+
+```powershell
+cd D:\2025\CCTV\ver2
+python Program.py
+```
+
+**Trước khi chạy:**
+
+1. Chỉnh đường dẫn camera trong `ver2/config_data.json` (`camera_src`).
+2. Đặt file model (ví dụ `yolo11n.pt`) đúng đường dẫn trong config.
+3. Lần đầu chưa có `settings.json` → app tự tạo, mặc định hiển thị 4 camera đầu (CCTV 01–04).
+
+> **Lưu ý:** Bản cũ ở thư mục gốc (`python Program.py` không qua `ver2`) vẫn chạy được nhưng không có tab Settings / `settings.json`. Nên dùng `ver2/`.
+
+---
+
+## Giao diện
+
+Cửa sổ gồm **hai tab**:
+
+| Tab | Mục đích |
+|-----|----------|
+| **Monitor** | Xem trực tiếp tối đa **4 camera** + panel ảnh cảnh báo bên phải |
+| **Settings** | Chọn camera hiển thị, lưu cài đặt vào `settings.json` |
+
+Hệ thống có thể khai báo **tối đa 8 camera** trong `config_data.json`, nhưng màn hình Monitor chỉ hiển thị **4 camera** do bạn chọn trong Settings.
+
+---
+
+## Tab Monitor
+
+### Bố cục
+
+- **Bên trái:** lưới 2×2 (4 ô camera).
+- **Bên phải:** ảnh cảnh báo mới nhất + danh sách file trong `LastDetectionWarning/`.
+
+### Trạng thái mỗi ô camera
+
+| Hiển thị | Ý nghĩa |
+|----------|---------|
+| **LIVE** (chấm xanh) | Đang nhận frame từ nguồn video |
+| **NO SIGNAL** (vàng) | Mất tín hiệu / không đọc được frame |
+| **OFF** / **CHƯA CHỌN** | Ô chưa gán camera hoặc stream đang tắt |
+| **WARNING** | Phát hiện vi phạm (không mũ / ngã / không áo theo rule đã bật) |
+
+### Checkbox trên từng ô
+
+Bật/tắt rule phát hiện **ngay trên màn hình** (áp dụng cho phiên làm việc hiện tại):
+
+- **Helmet** — cảnh báo liên quan mũ bảo hộ  
+- **Fell** — cảnh báo ngã  
+- **Jacket** — cảnh báo áo bảo hộ  
+
+Rule mặc định lấy từ `config_data.json` → `enable_flags`.
+
+### Hình ảnh có khung box
+
+- **Đỏ:** vi phạm (theo rule đang bật).  
+- **Xanh:** đối tượng phát hiện nhưng không thuộc rule cảnh báo.
+
+---
+
+## Tab Settings
+
+Dùng khi cần **đổi bộ camera hiển thị** trên Monitor (trong tối đa 8 camera đã khai báo).
+
+### Quy trình
+
+1. Mở tab **Settings** → tất cả luồng trên Monitor **tạm dừng** (tránh xung đột RTSP).
+2. Tick **Hiển thị** tối đa **4 camera** trong danh sách.
+3. Chọn một trong hai nút:
+
+| Nút | Tác dụng |
+|-----|----------|
+| **Lưu cài đặt** | Ghi `settings.json` — **không** mở lại stream |
+| **Áp dụng và về Monitor** | Ghi `settings.json` + gán camera vào 4 ô + quay tab Monitor và **bật stream** |
+
+4. Lần mở app sau → đọc `settings.json` → tự hiển thị đúng bộ camera đã lưu.
+
+### Ví dụ
+
+Muốn xem CCTV 01, 02, 05, 06 thay vì 01–04:
+
+1. Settings → bỏ tick CCTV 03, 04.  
+2. Tick CCTV 05, 06.  
+3. Bấm **Áp dụng và về Monitor**.
+
+---
+
+## Hai file cấu hình
+
+```text
+config_data.json   →  Danh mục camera (RTSP, model, rule detect) — ít đổi
+settings.json      →  Camera nào đang hiển thị + tham số vận hành — đổi qua UI
+config_data_log.json → Panel ảnh cảnh báo bên phải
+```
+
+| Câu hỏi | File nào |
+|---------|----------|
+| Thêm camera mới / đổi URL RTSP? | `config_data.json` |
+| Chọn 4 camera hiển thị hôm nay? | Tab Settings → `settings.json` |
+| Bật/tắt rule helmet/fell mặc định? | `config_data.json` → `enable_flags` |
+
+**Không** dùng `use_camera` trong `config_data.json` nữa — việc “camera nào lên màn hình” nằm trong `settings.json`.
+
+---
+
+## Cấu hình camera (`config_data.json`)
+
+File nằm tại `ver2/config_data.json`. Mỗi phần tử trong `camera_infos` là một camera.
+
+### Các trường quan trọng
+
+| Trường | Mô tả | Ví dụ |
+|--------|--------|--------|
+| `camera_name` | Tên hiển thị (khớp với `settings.json`) | `"CCTV 01"` |
+| `camera_src` | RTSP URL, đường dẫn file video, hoặc `0` (USB) | `rtsp://user:pass@ip/...` |
+| `yolo_model_path` | File weight YOLO | `yolo11n.pt` |
+| `img_size` | Kích thước input AI | `640` |
+| `yolo_rate` | Ngưỡng confidence (0.0–1.0) | `0.5` |
+| `roi_check` | Vùng quan tâm `[x1, x2, y1, y2]` | `[-1, 9999, -1, 9999]` = toàn khung |
+| `enable_flags` | Rule detect mặc định | xem bảng dưới |
+
+### `enable_flags` (chỉ rule phát hiện)
+
+```json
+"enable_flags": {
+  "fell": 1,
+  "helmet": 1,
+  "jacket": 0,
+  "fire": 0,
+  "smoke": 0
+}
+```
+
+`1` = bật, `0` = tắt.
+
+### Thêm camera thứ 5–8
+
+Thêm object mới vào mảng `camera_infos`, đặt `camera_name` **duy nhất**. Camera mới **không** tự hiện trên Monitor — chọn trong tab Settings rồi Lưu/Áp dụng.
+
+Sau khi sửa `config_data.json`, **khởi động lại** ứng dụng (hoặc vào Settings → Áp dụng lại nếu chỉ đổi tên camera đã có trong settings).
+
+---
+
+## Cài đặt vận hành (`settings.json`)
+
+File tại `ver2/settings.json`, tạo tự động hoặc chỉnh qua tab Settings.
+
+### Ví dụ
+
+```json
+{
+  "version": 1,
+  "display": {
+    "max_active_cameras": 4,
+    "monitor_columns": 2,
+    "selected_cameras": [
+      "CCTV 01",
+      "CCTV 02",
+      "CCTV 03",
+      "CCTV 04"
+    ]
+  },
+  "performance": {
+    "display_target_fps": 6.0,
+    "swap_delay_ms": 800
+  }
+}
+```
+
+| Trường | Ý nghĩa |
+|--------|---------|
+| `selected_cameras` | Danh sách tên camera hiển thị (thứ tự = Ô 1, 2, 3, 4) |
+| `max_active_cameras` | Số ô Monitor (mặc định 4) |
+| `display_target_fps` | Tần suất gửi frame vào AI mỗi camera (~6 = ổn định) |
+| `swap_delay_ms` | Dự phòng cho đổi cam (ms) — dùng khi mở rộng sau |
+
+**Chỉnh tay:** có thể sửa `settings.json` khi app **đang tắt**, rồi mở lại. Tên trong `selected_cameras` phải trùng `camera_name` trong `config_data.json`.
+
+---
+
+## Ảnh cảnh báo & panel log
+
+- Khi phát hiện vi phạm, ảnh được lưu vào:  
+  `ver2/LastDetectionWarning/`  
+  Tên file: `{tên_camera}_{thời_gian}_warning.jpg`
+- Panel bên phải tab Monitor đọc thư mục này (cấu hình `config_data_log.json` → `directory`).
+
+---
+
+## Cài FFmpeg (RTSP)
+
+RTSP chạy ổn định hơn khi có FFmpeg trong PATH.
+
+### Cài nhanh (winget)
+
+```powershell
+winget install --id Gyan.FFmpeg
+```
+
+Đóng/mở lại terminal, kiểm tra `ffmpeg -version`.
+
+### Tải thủ công
+
+1. Tải bản Windows từ [gyan.dev/ffmpeg/builds](https://www.gyan.dev/ffmpeg/builds/) (bản *essentials*).  
+2. Giải nén, thêm thư mục `bin` vào **Path** (ví dụ `C:\ffmpeg\bin`).  
+
+### Test RTSP
 
 ```powershell
 ffmpeg -rtsp_transport tcp -i "rtsp://user:pass@ip/..." -t 5 -f null -
@@ -364,33 +269,42 @@ ffmpeg -rtsp_transport tcp -i "rtsp://user:pass@ip/..." -t 5 -f null -
 
 ---
 
-## Log & ảnh cảnh báo
+## Xử lý sự cố thường gặp
 
-- **Log ứng dụng:** qua `Logging.py` (logger tên `CCTV` trong `Program.py`).
-- **Ảnh vi phạm:** lưu tại `./LastDetectionWarning/` với tên `{camera_slug}_{timestamp}_warning.jpg`.
-- **Panel phải:** đọc thư mục này theo `config_data_log.json`.
-
----
-
-## Xử lý sự cố
-
-| Triệu chứng | Nguyên nhân thường gặp | Hướng xử lý |
-|-------------|------------------------|-------------|
-| NO SIGNAL liên tục | RTSP sai URL, mạng, hoặc chưa cài FFmpeg | Test bằng lệnh `ffmpeg` ở trên; kiểm tra firewall |
-| FPS thấp / lag | Quá nhiều camera hoặc `_target_fps` cao | Giảm `_target_fps`, `img_size`, hoặc số camera bật |
-| GPU đầy / OOM | Model quá lớn hoặc batch cao | Dùng model nhỏ hơn (`yolo11n.pt`); giảm `_batch_size` |
-| Cảnh báo sai / không báo | `yolo_rate` hoặc class index sai model | Chỉnh `yolo_rate`; kiểm tra cls `5/8/9` trong `yolo_engine.py` |
-| Queue overloaded (log) | GPU không kịp | Giảm FPS/camera hoặc tăng `yolo_rate` |
-| Widget camera phình to | QLabel scale theo pixmap | Đã xử lý bằng `setScaledContents(False)` — nếu tái hiện, kiểm tra `resizeEvent` |
+| Triệu chứng | Cách xử lý |
+|-------------|------------|
+| **NO SIGNAL** liên tục | Kiểm tra `camera_src`, mạng, cài FFmpeg; test RTSP bằng lệnh trên |
+| Không thấy camera sau khi chọn Settings | Bấm **Áp dụng và về Monitor**, không chỉ Lưu |
+| Camera trong settings không chạy | Kiểm tra `camera_name` khớp chính xác với config (kể cả khoảng trắng) |
+| App chậm / giật | Giảm `display_target_fps` trong `settings.json` (vd `4.0`); giảm `img_size` xuống `512` |
+| Quá nhiều cảnh báo sai | Tăng `yolo_rate` trong config (vd `0.6`) |
+| Không load được model | Đặt đúng đường dẫn `yolo_model_path`; chạy app từ thư mục `ver2` |
+| Log `YOLO queue overloaded` | Giảm FPS hoặc số camera đang hiển thị |
 
 ---
 
-## Huấn luyện model (tùy chọn)
+## Cấu trúc thư mục (ver2)
 
-File `yolo_training.py` và `data.yaml` dùng để train/fine-tune YOLO. Sau khi có weight mới, cập nhật `yolo_model_path` trong config và đảm bảo class index trong `yolo_engine.py` khớp với model.
+```text
+ver2/
+├── Program.py              ← Chạy ứng dụng
+├── config_data.json        ← Khai báo camera
+├── settings.json           ← Camera hiển thị + FPS (Settings tab)
+├── config_data_log.json    ← Panel log ảnh
+├── CameraWidget.py         ← Ô camera + capture
+├── yolo_engine.py          ← AI dùng chung
+├── camera_settings_panel.py← UI tab Settings
+├── settings_store.py       ← Đọc/ghi settings.json
+├── ffmpeg_capture.py       ← RTSP qua FFmpeg
+└── LastDetectionWarning/   ← Ảnh vi phạm (tự tạo)
+```
 
 ---
 
-## Giấy phép & liên hệ
+## Tóm tắt quy trình hàng ngày
 
-Dự án nội bộ EHS CCTV. Chỉnh sửa và triển khai theo quy trình của đơn vị.
+1. Mở app: `cd ver2` → `python Program.py`.  
+2. Tab **Monitor**: quan sát 4 camera, xử lý khi thấy **WARNING**.  
+3. Cần đổi camera hiển thị → tab **Settings** → chọn tối đa 4 → **Áp dụng và về Monitor**.  
+4. Cần thêm/sửa RTSP hoặc model → sửa `config_data.json` → khởi động lại app.  
+5. Xem lại sự cố → panel phải hoặc thư mục `LastDetectionWarning/`.

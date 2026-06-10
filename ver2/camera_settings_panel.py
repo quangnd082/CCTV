@@ -15,9 +15,10 @@ from PyQt5.QtWidgets import (
 
 
 class CameraSettingsPanel(QWidget):
-    """Chọn camera — chỉ áp dụng khi bấm Xác nhận (tránh xung đột luồng RTSP)."""
+    """Chọn camera hiển thị — lưu vào settings.json, áp dụng khi bấm Xác nhận."""
 
     apply_requested = pyqtSignal(list)
+    save_requested = pyqtSignal(list)
 
     def __init__(self, camera_infos, max_active: int = 4, parent=None, logger=None):
         super().__init__(parent)
@@ -27,7 +28,6 @@ class CameraSettingsPanel(QWidget):
         self._checkboxes: List[QCheckBox] = []
         self._updating = False
         self._build_ui()
-        self._load_initial_selection()
         self._refresh_lock_state()
 
     def _build_ui(self) -> None:
@@ -41,7 +41,8 @@ class CameraSettingsPanel(QWidget):
 
         hint = QLabel(
             f"Khi vào tab này, tất cả luồng camera trên Monitor sẽ được dừng.\n"
-            f"Chọn tối đa {self._max_active} camera, sau đó bấm «Xác nhận» để mở lại luồng."
+            f"Chọn tối đa {self._max_active} camera. «Lưu» ghi settings.json; "
+            f"«Áp dụng» lưu và mở lại luồng trên tab Monitor."
         )
         hint.setWordWrap(True)
         hint.setStyleSheet("color: #a8c8e8; font-size: 12px;")
@@ -70,7 +71,7 @@ class CameraSettingsPanel(QWidget):
             cell = QGridLayout(frame)
             cell.setContentsMargins(10, 8, 10, 8)
 
-            cb = QCheckBox("Use")
+            cb = QCheckBox("Hiển thị")
             cb.setStyleSheet("font-weight: bold; color: #7fd3ff;")
             cb.setProperty("camera_name", ci.camera_name)
             cb.stateChanged.connect(self._on_checkbox_changed)
@@ -96,7 +97,18 @@ class CameraSettingsPanel(QWidget):
 
         btn_row = QHBoxLayout()
         btn_row.addStretch(1)
-        self.btn_apply = QPushButton("Xác nhận và áp dụng")
+
+        self.btn_save = QPushButton("Lưu cài đặt")
+        self.btn_save.setMinimumHeight(40)
+        self.btn_save.setStyleSheet(
+            "QPushButton { background-color: #3a3a3a; color: #e8e8e8; font-weight: bold; "
+            "font-size: 14px; padding: 8px 20px; border-radius: 6px; border: 1px solid #555; }"
+            "QPushButton:hover { background-color: #4a4a4a; }"
+        )
+        self.btn_save.clicked.connect(self._on_save_clicked)
+        btn_row.addWidget(self.btn_save)
+
+        self.btn_apply = QPushButton("Áp dụng và về Monitor")
         self.btn_apply.setMinimumHeight(40)
         self.btn_apply.setStyleSheet(
             "QPushButton { background-color: #1a6fb5; color: white; font-weight: bold; "
@@ -106,24 +118,13 @@ class CameraSettingsPanel(QWidget):
         )
         self.btn_apply.clicked.connect(self._on_apply_clicked)
         btn_row.addWidget(self.btn_apply)
+
         btn_row.addStretch(1)
         root.addLayout(btn_row)
         root.addStretch(1)
 
-    def _load_initial_selection(self) -> None:
-        self._updating = True
-        started = 0
-        for cb, ci in zip(self._checkboxes, self._camera_infos):
-            flags = getattr(ci, "enable_flags", None) or {}
-            use = int(flags.get("use_camera", 0)) == 1
-            checked = use and started < self._max_active
-            if checked:
-                started += 1
-            cb.setChecked(checked)
-        self._updating = False
-
     def load_selection(self, camera_names: List[str]) -> None:
-        """Đồng bộ checkbox theo bộ camera đang áp dụng (khi mở tab Settings)."""
+        """Đồng bộ checkbox theo danh sách từ settings.json."""
         name_set = set(camera_names or [])
         self._updating = True
         for cb in self._checkboxes:
@@ -136,7 +137,7 @@ class CameraSettingsPanel(QWidget):
         for cb in self._checkboxes:
             if cb.isChecked():
                 names.append(cb.property("camera_name"))
-        return names
+        return names[: self._max_active]
 
     def _selected_count(self) -> int:
         return sum(1 for cb in self._checkboxes if cb.isChecked())
@@ -149,7 +150,7 @@ class CameraSettingsPanel(QWidget):
                 cb.setEnabled(True)
             else:
                 cb.setEnabled(not at_limit)
-        self.label_counter.setText(f"Đã chọn (chưa áp dụng): {n}/{self._max_active}")
+        self.label_counter.setText(f"Đã chọn: {n}/{self._max_active}")
 
     def _on_checkbox_changed(self, _state: int) -> None:
         if self._updating:
@@ -166,8 +167,14 @@ class CameraSettingsPanel(QWidget):
 
         self._refresh_lock_state()
 
+    def _on_save_clicked(self) -> None:
+        selected = self.get_selected_names()
+        if self.logger:
+            self.logger.info(f"[SETTINGS] save requested: {selected}")
+        self.save_requested.emit(selected)
+
     def _on_apply_clicked(self) -> None:
         selected = self.get_selected_names()
         if self.logger:
-            self.logger.info(f"[CAM] apply requested: {selected}")
+            self.logger.info(f"[SETTINGS] apply requested: {selected}")
         self.apply_requested.emit(selected)

@@ -12,7 +12,7 @@
             "yolo_rate": 0.5,
             "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
             "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-            "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "enable_flags": {"fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
             "timer_delay": 100
         },
         {
@@ -24,7 +24,7 @@
             "yolo_rate": 0.5,
             "classes": ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "trafficlight"],
             "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-            "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "enable_flags": {"fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
             "timer_delay": 100
         },
         {
@@ -36,7 +36,7 @@
             "yolo_rate": 0.5,
             "classes": ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "trafficlight"],
             "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-            "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "enable_flags": {"fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
             "timer_delay": 100
         },
         {
@@ -48,7 +48,7 @@
             "yolo_rate": 0.5,
             "classes": ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "trafficlight"],
             "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-            "enable_flags": {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "enable_flags": {"fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
             "timer_delay": 100
         },
         {
@@ -60,7 +60,7 @@
             "yolo_rate": 0.5,
             "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
             "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-            "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "enable_flags": {"fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
             "timer_delay": 100
         },
         {
@@ -72,7 +72,7 @@
             "yolo_rate": 0.5,
             "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
             "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-            "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "enable_flags": {"fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
             "timer_delay": 100
         },
         {
@@ -84,7 +84,7 @@
             "yolo_rate": 0.5,
             "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
             "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-            "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "enable_flags": {"fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
             "timer_delay": 100
         },
         {
@@ -96,7 +96,7 @@
             "yolo_rate": 0.5,
             "classes": ["person", "bicycle", "car", "motorcycle", "jacket", "fell", "helmet", "truck", "fire", "smoke"],
             "colors": ["#0000FF", "#00FF00", "#FF00FF", "#000000", "#000000", "#FF0000", "#FF0000", "#FF0000", "#FF0000", "#FF0000"],
-            "enable_flags": {"use_camera": 0, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
+            "enable_flags": {"fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0},
             "timer_delay": 100
         }
     ]

@@ -43,14 +43,15 @@ class CameraInfo:
         self.is_fire_check = is_fire_check
         self.is_smoke_check = is_smoke_check
         self.timer_delay = timer_delay
-        # enable_flags có thể chứa cả cờ bật camera và cờ bật/tắt rule detect
-        # Ví dụ:
-        # {"use_camera": 1, "fell": 1, "helmet": 1, "jacket": 0, "fire": 0, "smoke": 0}
+        # enable_flags: rule detect (fell/helmet/jacket/fire/smoke).
+        # Camera hiển thị được chọn trong settings.json, không lưu ở đây.
         self.enable_flags = enable_flags or {}
 
         self.roi_check = roi_check
 
     def to_dict(self):
+        flags = dict(self.enable_flags or {})
+        flags.pop("use_camera", None)
         return {
             'camera_name': self.camera_name,
             'camera_src': self.camera_src,
@@ -59,7 +60,7 @@ class CameraInfo:
             'yolo_rate': self.yolo_rate,
             'classes': self.classes,
             'colors': self.colors,
-            'enable_flags': self.enable_flags,
+            'enable_flags': flags,
             'is_fell_check': self.is_fell_check,
             'is_helmet_check': self.is_helmet_check,
             'is_jacket_check': self.is_jacket_check,
@@ -73,12 +74,10 @@ class CameraInfo:
     def from_dict(cls, camera_info):
         enable_flags = camera_info.get("enable_flags")
 
-        # Backward compatible:
-        # - Nếu enable_flags không có -> suy ra từ is_*_check và mặc định dùng camera
-        # - Nếu enable_flags là int (0/1) -> hiểu là use_camera
+        # Backward compatible: enable_flags thiếu -> suy ra từ is_*_check.
+        # use_camera (legacy) bỏ qua — selection nằm trong settings.json.
         if enable_flags is None:
             enable_flags = {
-                "use_camera": 1,
                 "fell": camera_info.get("is_fell_check", 0),
                 "helmet": camera_info.get("is_helmet_check", 0),
                 "jacket": camera_info.get("is_jacket_check", 0),
@@ -87,7 +86,6 @@ class CameraInfo:
             }
         elif isinstance(enable_flags, int):
             enable_flags = {
-                "use_camera": int(enable_flags),
                 "fell": camera_info.get("is_fell_check", 0),
                 "helmet": camera_info.get("is_helmet_check", 0),
                 "jacket": camera_info.get("is_jacket_check", 0),
@@ -95,7 +93,8 @@ class CameraInfo:
                 "smoke": camera_info.get("is_smoke_check", 0),
             }
         elif isinstance(enable_flags, dict):
-            enable_flags.setdefault("use_camera", 1)
+            enable_flags = dict(enable_flags)
+            enable_flags.pop("use_camera", None)
 
         colors = [_normalize_color(c) for c in camera_info.get("colors", [])]
         is_fell_check = camera_info.get("is_fell_check", 0)

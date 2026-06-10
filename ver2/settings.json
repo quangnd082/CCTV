@@ -1,0 +1,17 @@
+{
+    "version": 1,
+    "display": {
+        "max_active_cameras": 4,
+        "monitor_columns": 2,
+        "selected_cameras": [
+            "CCTV 01",
+            "CCTV 02",
+            "CCTV 03",
+            "CCTV 04"
+        ]
+    },
+    "performance": {
+        "display_target_fps": 6.0,
+        "swap_delay_ms": 800
+    }
+}

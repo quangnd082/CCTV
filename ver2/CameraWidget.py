@@ -378,6 +378,12 @@ class CameraWidget(QWidget):
 
         self.frame_count = 0
 
+    def set_target_fps(self, fps: float) -> None:
+        """Giới hạn tần số gửi frame sang YoloEngine (từ settings.json)."""
+        fps = max(1.0, min(15.0, float(fps)))
+        self._target_fps = fps
+        self._infer_interval = 1.0 / self._target_fps
+
     def is_stream_enabled(self) -> bool:
         return bool(self._stream_enabled)
 
